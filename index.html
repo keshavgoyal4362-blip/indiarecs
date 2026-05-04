@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IndiaRecs — Skincare</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f9f7f4;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e8e4df;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    header span {
+      background: #e8f4ec;
+      color: #2d7a47;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #888;
+      margin-left: auto;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    .product-card {
+      background: #fff;
+      border: 1px solid #e8e4df;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: box-shadow 0.15s;
+    }
+
+    .product-card:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    .rank {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ccc;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .rank.top { color: #f0a500; }
+
+    .product-info { flex: 1; }
+
+    .product-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .product-meta {
+      font-size: 13px;
+      color: #888;
+      display: flex;
+      gap: 16px;
+    }
+
+    .meta-item { display: flex; align-items: center; gap: 4px; }
+
+    .score-badge {
+      background: #e8f4ec;
+      color: #2d7a47;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .score-badge.low {
+      background: #fef3e2;
+      color: #b45309;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 15px;
+    }
+
+    .error {
+      text-align: center;
+      padding: 40px 20px;
+      color: #e53e3e;
+      font-size: 14px;
+      background: #fff5f5;
+      border-radius: 12px;
+      border: 1px solid #fed7d7;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>IndiaRecs</h1>
+  <span>Skincare</span>
+  <p class="subtitle">Recommended by real Reddit users</p>
+</header>
+
+<div class="container">
+  <p class="section-title">Top products — ranked by community score</p>
+  <div id="products-list">
+    <div class="loading">Loading products...</div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co'
+  const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc'
+
+  async function loadProducts() {
+    const container = document.getElementById('products-list')
+
+    try {
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/products?select=*&order=score.desc`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        }
+      )
+
+      if (!response.ok) throw new Error('Failed to fetch')
+
+      const products = await response.json()
+
+      if (products.length === 0) {
+        container.innerHTML = '<div class="loading">No products found.</div>'
+        return
+      }
+
+      container.innerHTML = products.map((product, index) => `
+        <div class="product-card">
+          <div class="rank ${index < 3 ? 'top' : ''}">${index + 1}</div>
+          <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-meta">
+              <span class="meta-item">mentions: ${product.mention_count}</span>
+              <span class="meta-item">positive: ${product.positive_count}</span>
+              <span class="meta-item">negative: ${product.negative_count}</span>
+            </div>
+          </div>
+          <div class="score-badge ${product.score < 20 ? 'low' : ''}">
+            ${product.score > 0 ? '+' : ''}${product.score}
+          </div>
+        </div>
+      `).join('')
+
+    } catch (err) {
+      container.innerHTML = `
+        <div class="error">
+          Could not load products. Check your Supabase keys.<br/>
+          <small>${err.message}</small>
+        </div>`
+    }
+  }
+
+  loadProducts()
+</script>
+
+</body>
+</html>
