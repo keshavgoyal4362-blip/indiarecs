@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>IndiaRecs — Skincare</title>
   <style>
@@ -17,123 +17,298 @@
     header {
       background: #fff;
       border-bottom: 1px solid #e8e4df;
-      padding: 20px 40px;
+      padding: 16px 40px;
       display: flex;
       align-items: center;
       gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
+    header h1 { font-size: 20px; font-weight: 700; }
 
-    header span {
+    .badge {
       background: #e8f4ec;
       color: #2d7a47;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 20px;
     }
 
-    .subtitle {
-      font-size: 13px;
-      color: #888;
+    .header-right {
       margin-left: auto;
+      font-size: 12px;
+      color: #888;
     }
 
-    .container {
-      max-width: 780px;
-      margin: 40px auto;
-      padding: 0 20px;
+    .hero {
+      background: #fff;
+      border-bottom: 1px solid #e8e4df;
+      padding: 40px;
+      text-align: center;
     }
 
-    .section-title {
-      font-size: 13px;
+    .hero h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+
+    .hero p {
+      color: #666;
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    .search-bar {
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 12px 20px 12px 44px;
+      border: 1.5px solid #e8e4df;
+      border-radius: 40px;
+      font-size: 15px;
+      outline: none;
+      background: #f9f7f4;
+      transition: border-color 0.2s;
+    }
+
+    .search-bar input:focus { border-color: #2d7a47; background: #fff; }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+      font-size: 16px;
+    }
+
+    .filters {
+      background: #fff;
+      border-bottom: 1px solid #e8e4df;
+      padding: 14px 40px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-label {
+      font-size: 12px;
       font-weight: 600;
       color: #888;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
+      margin-right: 4px;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border: 1.5px solid #e8e4df;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #fff;
+      color: #444;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .filter-btn:hover { border-color: #2d7a47; color: #2d7a47; }
+
+    .filter-btn.active {
+      background: #2d7a47;
+      border-color: #2d7a47;
+      color: #fff;
+    }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      background: #e8e4df;
+      margin: 0 4px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .results-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 16px;
+    }
+
+    .results-count {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .sort-select {
+      font-size: 13px;
+      border: 1.5px solid #e8e4df;
+      border-radius: 8px;
+      padding: 6px 10px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+      font-family: inherit;
+      outline: none;
     }
 
     .product-card {
       background: #fff;
       border: 1px solid #e8e4df;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 20px 24px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 20px;
-      transition: box-shadow 0.15s;
+      transition: box-shadow 0.15s, transform 0.15s;
+      cursor: pointer;
     }
 
     .product-card:hover {
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-1px);
     }
 
     .rank {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
-      color: #ccc;
-      min-width: 28px;
+      color: #ddd;
+      min-width: 32px;
       text-align: center;
     }
 
-    .rank.top { color: #f0a500; }
+    .rank.gold { color: #f0a500; }
+    .rank.silver { color: #9aa0a6; }
+    .rank.bronze { color: #cd7f32; }
 
-    .product-info { flex: 1; }
+    .product-info { flex: 1; min-width: 0; }
+
+    .product-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
 
     .product-name {
       font-size: 16px;
       font-weight: 600;
       color: #1a1a1a;
-      margin-bottom: 6px;
     }
 
-    .product-meta {
-      font-size: 13px;
+    .product-brand {
+      font-size: 12px;
       color: #888;
-      display: flex;
-      gap: 16px;
+      background: #f5f5f5;
+      padding: 2px 8px;
+      border-radius: 10px;
     }
 
-    .meta-item { display: flex; align-items: center; gap: 4px; }
+    .product-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
 
-    .score-badge {
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .tag-category {
       background: #e8f4ec;
       color: #2d7a47;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 8px;
-      min-width: 60px;
-      text-align: center;
     }
 
-    .score-badge.low {
+    .tag-skin {
+      background: #e8f0fe;
+      color: #1a56db;
+    }
+
+    .tag-price {
       background: #fef3e2;
       color: #b45309;
     }
 
-    .loading {
+    .product-meta {
+      font-size: 12px;
+      color: #aaa;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .meta-dot {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 50%;
+      margin: 0 2px;
+      vertical-align: middle;
+    }
+
+    .score-box {
+      text-align: center;
+      min-width: 70px;
+    }
+
+    .score-number {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d7a47;
+      line-height: 1;
+    }
+
+    .score-number.low { color: #b45309; }
+    .score-label { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+    .empty-state {
       text-align: center;
       padding: 60px 20px;
       color: #888;
-      font-size: 15px;
     }
 
-    .error {
+    .empty-state p { font-size: 15px; margin-top: 8px; }
+
+    footer {
       text-align: center;
       padding: 40px 20px;
-      color: #e53e3e;
-      font-size: 14px;
-      background: #fff5f5;
-      border-radius: 12px;
-      border: 1px solid #fed7d7;
+      font-size: 12px;
+      color: #bbb;
+      border-top: 1px solid #e8e4df;
+      margin-top: 40px;
+    }
+
+    footer a { color: #2d7a47; text-decoration: none; }
+
+    @media (max-width: 600px) {
+      header { padding: 14px 16px; }
+      .hero { padding: 24px 16px; }
+      .hero h2 { font-size: 22px; }
+      .filters { padding: 12px 16px; }
+      .container { padding: 0 12px; }
+      .product-card { padding: 16px; gap: 12px; }
     }
   </style>
 </head>
@@ -141,68 +316,165 @@
 
 <header>
   <h1>IndiaRecs</h1>
-  <span>Skincare</span>
-  <p class="subtitle">Recommended by real Reddit users</p>
+  <span class="badge">Skincare</span>
+  <div class="header-right">Powered by Reddit communities</div>
 </header>
 
-<div class="container">
-  <p class="section-title">Top products — ranked by community score</p>
-  <div id="products-list">
-    <div class="loading">Loading products...</div>
+<div class="hero">
+  <h2>Find your next holy grail product</h2>
+  <p>Real recommendations from Indian skincare communities on Reddit</p>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="Search products, brands..." oninput="applyFilters()"/>
   </div>
 </div>
+
+<div class="filters">
+  <span class="filter-label">Skin type</span>
+  <button class="filter-btn active" onclick="setFilter('skin','all',this)">All</button>
+  <button class="filter-btn" onclick="setFilter('skin','oily',this)">Oily</button>
+  <button class="filter-btn" onclick="setFilter('skin','dry',this)">Dry</button>
+  <button class="filter-btn" onclick="setFilter('skin','combination',this)">Combination</button>
+  <button class="filter-btn" onclick="setFilter('skin','sensitive',this)">Sensitive</button>
+
+  <div class="divider"></div>
+
+  <span class="filter-label">Category</span>
+  <button class="filter-btn active" onclick="setFilter('cat','all',this)">All</button>
+  <button class="filter-btn" onclick="setFilter('cat','cleanser',this)">Cleanser</button>
+  <button class="filter-btn" onclick="setFilter('cat','moisturiser',this)">Moisturiser</button>
+  <button class="filter-btn" onclick="setFilter('cat','sunscreen',this)">Sunscreen</button>
+  <button class="filter-btn" onclick="setFilter('cat','serum',this)">Serum</button>
+  <button class="filter-btn" onclick="setFilter('cat','toner',this)">Toner</button>
+</div>
+
+<div class="container">
+  <div class="results-bar">
+    <span class="results-count" id="results-count">Loading...</span>
+    <select class="sort-select" onchange="applyFilters()">
+      <option value="score">Sort by score</option>
+      <option value="mentions">Sort by mentions</option>
+      <option value="price_low">Price: low to high</option>
+      <option value="price_high">Price: high to low</option>
+    </select>
+  </div>
+  <div id="products-list"></div>
+</div>
+
+<footer>
+  Built with data from <a href="https://reddit.com/r/IndianSkincareAddicts" target="_blank">r/IndianSkincareAddicts</a>
+  and <a href="https://reddit.com/r/SkincareAddiction" target="_blank">r/SkincareAddiction</a>
+  <br/><br/>
+  IndiaRecs — community-powered skincare recommendations for India
+</footer>
 
 <script>
   const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co'
   const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc'
 
-  async function loadProducts() {
-    const container = document.getElementById('products-list')
+  let allProducts = []
+  let activeFilters = { skin: 'all', cat: 'all' }
 
+  async function loadProducts() {
     try {
       const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/products?select=*&order=score.desc`,
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
-          }
-        }
+        `${SUPABASE_URL}/rest/v1/products?select=*`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }}
       )
+      allProducts = await response.json()
+      applyFilters()
+    } catch (err) {
+      document.getElementById('products-list').innerHTML =
+        `<div class="empty-state">Failed to load products. Please refresh.</div>`
+    }
+  }
 
-      if (!response.ok) throw new Error('Failed to fetch')
+  function setFilter(type, value, btn) {
+    activeFilters[type] = value
+    const group = type === 'skin' ? 0 : 1
+    document.querySelectorAll('.filter-btn').forEach((b, i) => {
+      if (b.onclick.toString().includes(`'${type}'`)) b.classList.remove('active')
+    })
+    btn.classList.add('active')
+    applyFilters()
+  }
 
-      const products = await response.json()
+  function applyFilters() {
+    const search = document.getElementById('search').value.toLowerCase()
+    const sort = document.querySelector('.sort-select').value
 
-      if (products.length === 0) {
-        container.innerHTML = '<div class="loading">No products found.</div>'
-        return
-      }
+    let filtered = allProducts.filter(p => {
+      const matchSkin = activeFilters.skin === 'all' ||
+        p.skin_type === activeFilters.skin || p.skin_type === 'all'
+      const matchCat = activeFilters.cat === 'all' ||
+        p.product_category === activeFilters.cat
+      const matchSearch = !search ||
+        p.name.toLowerCase().includes(search) ||
+        (p.brand && p.brand.toLowerCase().includes(search))
+      return matchSkin && matchCat && matchSearch
+    })
 
-      container.innerHTML = products.map((product, index) => `
-        <div class="product-card">
-          <div class="rank ${index < 3 ? 'top' : ''}">${index + 1}</div>
-          <div class="product-info">
-            <div class="product-name">${product.name}</div>
-            <div class="product-meta">
-              <span class="meta-item">mentions: ${product.mention_count}</span>
-              <span class="meta-item">positive: ${product.positive_count}</span>
-              <span class="meta-item">negative: ${product.negative_count}</span>
-            </div>
+    filtered.sort((a, b) => {
+      if (sort === 'score') return b.score - a.score
+      if (sort === 'mentions') return b.mention_count - a.mention_count
+      if (sort === 'price_low') return a.price_inr - b.price_inr
+      if (sort === 'price_high') return b.price_inr - a.price_inr
+      return 0
+    })
+
+    renderProducts(filtered)
+  }
+
+  function getRankClass(i) {
+    if (i === 0) return 'gold'
+    if (i === 1) return 'silver'
+    if (i === 2) return 'bronze'
+    return ''
+  }
+
+  function renderProducts(products) {
+    const container = document.getElementById('products-list')
+    const count = document.getElementById('results-count')
+    count.textContent = `${products.length} product${products.length !== 1 ? 's' : ''} found`
+
+    if (products.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div style="font-size:32px">🔍</div>
+          <p>No products match your filters.<br/>Try adjusting your search or filters.</p>
+        </div>`
+      return
+    }
+
+    container.innerHTML = products.map((p, i) => `
+      <div class="product-card">
+        <div class="rank ${getRankClass(i)}">${i + 1}</div>
+        <div class="product-info">
+          <div class="product-top">
+            <span class="product-name">${p.name}</span>
+            ${p.brand ? `<span class="product-brand">${p.brand}</span>` : ''}
           </div>
-          <div class="score-badge ${product.score < 20 ? 'low' : ''}">
-            ${product.score > 0 ? '+' : ''}${product.score}
+          <div class="product-tags">
+            ${p.product_category ? `<span class="tag tag-category">${p.product_category}</span>` : ''}
+            ${p.skin_type && p.skin_type !== 'all' ? `<span class="tag tag-skin">${p.skin_type} skin</span>` : ''}
+            ${p.price_inr ? `<span class="tag tag-price">₹${p.price_inr}</span>` : ''}
+          </div>
+          <div class="product-meta">
+            <span>${p.mention_count} mentions</span>
+            <span class="meta-dot"></span>
+            <span>${p.positive_count} positive</span>
+            <span class="meta-dot"></span>
+            <span>${p.negative_count} negative</span>
           </div>
         </div>
-      `).join('')
-
-    } catch (err) {
-      container.innerHTML = `
-        <div class="error">
-          Could not load products. Check your Supabase keys.<br/>
-          <small>${err.message}</small>
-        </div>`
-    }
+        <div class="score-box">
+          <div class="score-number ${p.score < 20 ? 'low' : ''}">
+            ${p.score > 0 ? '+' : ''}${p.score}
+          </div>
+          <div class="score-label">community score</div>
+        </div>
+      </div>
+    `).join('')
   }
 
   loadProducts()
