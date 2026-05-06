@@ -6,14 +6,12 @@
   <title>IndiaRecs — Skincare</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #f9f7f4;
       color: #1a1a1a;
       min-height: 100vh;
     }
-
     header {
       background: #fff;
       border-bottom: 1px solid #e8e4df;
@@ -25,9 +23,7 @@
       top: 0;
       z-index: 100;
     }
-
-    header h1 { font-size: 20px; font-weight: 700; }
-
+    header h1 { font-size: 20px; font-weight: 700; cursor: pointer; }
     .badge {
       background: #e8f4ec;
       color: #2d7a47;
@@ -36,39 +32,16 @@
       padding: 3px 8px;
       border-radius: 20px;
     }
-
-    .header-right {
-      margin-left: auto;
-      font-size: 12px;
-      color: #888;
-    }
-
+    .header-right { margin-left: auto; font-size: 12px; color: #888; }
     .hero {
       background: #fff;
       border-bottom: 1px solid #e8e4df;
       padding: 40px;
       text-align: center;
     }
-
-    .hero h2 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #1a1a1a;
-    }
-
-    .hero p {
-      color: #666;
-      font-size: 15px;
-      margin-bottom: 24px;
-    }
-
-    .search-bar {
-      max-width: 480px;
-      margin: 0 auto;
-      position: relative;
-    }
-
+    .hero h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .hero p { color: #666; font-size: 15px; margin-bottom: 24px; }
+    .search-bar { max-width: 480px; margin: 0 auto; position: relative; }
     .search-bar input {
       width: 100%;
       padding: 12px 20px 12px 44px;
@@ -79,9 +52,7 @@
       background: #f9f7f4;
       transition: border-color 0.2s;
     }
-
     .search-bar input:focus { border-color: #2d7a47; background: #fff; }
-
     .search-icon {
       position: absolute;
       left: 16px;
@@ -90,7 +61,6 @@
       color: #aaa;
       font-size: 16px;
     }
-
     .filters {
       background: #fff;
       border-bottom: 1px solid #e8e4df;
@@ -100,16 +70,13 @@
       flex-wrap: wrap;
       align-items: center;
     }
-
     .filter-label {
       font-size: 12px;
       font-weight: 600;
       color: #888;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      margin-right: 4px;
     }
-
     .filter-btn {
       padding: 6px 14px;
       border: 1.5px solid #e8e4df;
@@ -121,40 +88,17 @@
       transition: all 0.15s;
       font-family: inherit;
     }
-
     .filter-btn:hover { border-color: #2d7a47; color: #2d7a47; }
-
-    .filter-btn.active {
-      background: #2d7a47;
-      border-color: #2d7a47;
-      color: #fff;
-    }
-
-    .divider {
-      width: 1px;
-      height: 20px;
-      background: #e8e4df;
-      margin: 0 4px;
-    }
-
-    .container {
-      max-width: 860px;
-      margin: 32px auto;
-      padding: 0 20px;
-    }
-
+    .filter-btn.active { background: #2d7a47; border-color: #2d7a47; color: #fff; }
+    .divider { width: 1px; height: 20px; background: #e8e4df; margin: 0 4px; }
+    .container { max-width: 860px; margin: 32px auto; padding: 0 20px; }
     .results-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
     }
-
-    .results-count {
-      font-size: 13px;
-      color: #888;
-    }
-
+    .results-count { font-size: 13px; color: #888; }
     .sort-select {
       font-size: 13px;
       border: 1.5px solid #e8e4df;
@@ -166,7 +110,6 @@
       font-family: inherit;
       outline: none;
     }
-
     .product-card {
       background: #fff;
       border: 1px solid #e8e4df;
@@ -179,26 +122,15 @@
       transition: box-shadow 0.15s, transform 0.15s;
       cursor: pointer;
     }
-
     .product-card:hover {
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
       transform: translateY(-1px);
     }
-
-    .rank {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ddd;
-      min-width: 32px;
-      text-align: center;
-    }
-
+    .rank { font-size: 20px; font-weight: 700; color: #ddd; min-width: 32px; text-align: center; }
     .rank.gold { color: #f0a500; }
     .rank.silver { color: #9aa0a6; }
     .rank.bronze { color: #cd7f32; }
-
     .product-info { flex: 1; min-width: 0; }
-
     .product-top {
       display: flex;
       align-items: center;
@@ -206,13 +138,7 @@
       margin-bottom: 6px;
       flex-wrap: wrap;
     }
-
-    .product-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1a1a1a;
-    }
-
+    .product-name { font-size: 16px; font-weight: 600; color: #1a1a1a; }
     .product-brand {
       font-size: 12px;
       color: #888;
@@ -220,75 +146,150 @@
       padding: 2px 8px;
       border-radius: 10px;
     }
-
-    .product-tags {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-
-    .tag {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 500;
-    }
-
-    .tag-category {
-      background: #e8f4ec;
-      color: #2d7a47;
-    }
-
-    .tag-skin {
-      background: #e8f0fe;
-      color: #1a56db;
-    }
-
-    .tag-price {
-      background: #fef3e2;
-      color: #b45309;
-    }
-
-    .product-meta {
-      font-size: 12px;
-      color: #aaa;
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
+    .product-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+    .tag-category { background: #e8f4ec; color: #2d7a47; }
+    .tag-skin { background: #e8f0fe; color: #1a56db; }
+    .tag-price { background: #fef3e2; color: #b45309; }
+    .product-meta { font-size: 12px; color: #aaa; display: flex; gap: 14px; flex-wrap: wrap; }
     .meta-dot {
       display: inline-block;
-      width: 4px;
-      height: 4px;
+      width: 4px; height: 4px;
       background: #ddd;
       border-radius: 50%;
       margin: 0 2px;
       vertical-align: middle;
     }
 
-    .score-box {
-      text-align: center;
-      min-width: 70px;
+    /* Sentiment bar */
+    .sentiment-bar {
+      display: flex;
+      height: 5px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+      gap: 2px;
     }
+    .sentiment-pos { background: #2d7a47; border-radius: 4px 0 0 4px; }
+    .sentiment-neu { background: #f0a500; }
+    .sentiment-neg { background: #e53e3e; border-radius: 0 4px 4px 0; }
 
-    .score-number {
-      font-size: 22px;
-      font-weight: 700;
-      color: #2d7a47;
-      line-height: 1;
-    }
-
+    .score-box { text-align: center; min-width: 70px; }
+    .score-number { font-size: 22px; font-weight: 700; color: #2d7a47; line-height: 1; }
     .score-number.low { color: #b45309; }
     .score-label { font-size: 10px; color: #aaa; margin-top: 2px; }
+    .score-pct { font-size: 11px; color: #2d7a47; margin-top: 4px; font-weight: 600; }
 
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #888;
+    /* Detail page */
+    .detail-page { display: none; }
+    .detail-page.active { display: block; }
+    .list-page { display: block; }
+    .list-page.hidden { display: none; }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #2d7a47;
+      cursor: pointer;
+      margin-bottom: 24px;
+      padding: 8px 0;
+      font-weight: 500;
     }
+    .back-btn:hover { opacity: 0.7; }
 
+    .detail-header {
+      background: #fff;
+      border: 1px solid #e8e4df;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+    .detail-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .detail-brand { font-size: 14px; color: #888; margin-bottom: 16px; }
+    .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+
+    .sentiment-section { margin-bottom: 20px; }
+    .sentiment-section h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+
+    .sentiment-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .sentiment-row-label { font-size: 13px; color: #444; min-width: 60px; }
+    .sentiment-track {
+      flex: 1;
+      height: 8px;
+      background: #f5f5f5;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .sentiment-fill-pos { height: 100%; background: #2d7a47; border-radius: 4px; transition: width 0.6s; }
+    .sentiment-fill-neu { height: 100%; background: #f0a500; border-radius: 4px; transition: width 0.6s; }
+    .sentiment-fill-neg { height: 100%; background: #e53e3e; border-radius: 4px; transition: width 0.6s; }
+    .sentiment-row-count { font-size: 13px; color: #888; min-width: 30px; text-align: right; }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-card {
+      background: #fff;
+      border: 1px solid #e8e4df;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .detail-card h3 {
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+    .pro-item, .con-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .pro-icon { color: #2d7a47; font-weight: 700; margin-top: 1px; }
+    .con-icon { color: #e53e3e; font-weight: 700; margin-top: 1px; }
+
+    .comments-section {
+      background: #fff;
+      border: 1px solid #e8e4df;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .comments-section h3 {
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .comment-item {
+      border-left: 3px solid #e8e4df;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .comment-item.positive { border-left-color: #2d7a47; background: #f6fbf8; }
+    .comment-item.negative { border-left-color: #e53e3e; background: #fff5f5; }
+    .comment-item.neutral { border-left-color: #e8e4df; background: #fafafa; }
+    .comment-text { font-size: 14px; color: #333; line-height: 1.6; margin-bottom: 6px; }
+    .comment-meta { font-size: 11px; color: #aaa; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #888; }
     .empty-state p { font-size: 15px; margin-top: 8px; }
 
     footer {
@@ -299,7 +300,6 @@
       border-top: 1px solid #e8e4df;
       margin-top: 40px;
     }
-
     footer a { color: #2d7a47; text-decoration: none; }
 
     @media (max-width: 600px) {
@@ -315,54 +315,64 @@
 <body>
 
 <header>
-  <h1>IndiaRecs</h1>
+  <h1 onclick="showList()">IndiaRecs</h1>
   <span class="badge">Skincare</span>
   <div class="header-right">Powered by Reddit communities</div>
 </header>
 
-<div class="hero">
-  <h2>Find your next holy grail product</h2>
-  <p>Real recommendations from Indian skincare communities on Reddit</p>
-  <div class="search-bar">
-    <span class="search-icon">🔍</span>
-    <input type="text" id="search" placeholder="Search products, brands..." oninput="applyFilters()"/>
+<!-- LIST PAGE -->
+<div class="list-page" id="list-page">
+  <div class="hero">
+    <h2>Find your next holy grail product</h2>
+    <p>Real recommendations from Indian skincare communities on Reddit</p>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="Search products, brands..." oninput="applyFilters()"/>
+    </div>
+  </div>
+
+  <div class="filters">
+    <span class="filter-label">Skin type</span>
+    <button class="filter-btn active" onclick="setFilter('skin','all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('skin','oily',this)">Oily</button>
+    <button class="filter-btn" onclick="setFilter('skin','dry',this)">Dry</button>
+    <button class="filter-btn" onclick="setFilter('skin','combination',this)">Combination</button>
+    <button class="filter-btn" onclick="setFilter('skin','sensitive',this)">Sensitive</button>
+    <div class="divider"></div>
+    <span class="filter-label">Category</span>
+    <button class="filter-btn active" onclick="setFilter('cat','all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('cat','cleanser',this)">Cleanser</button>
+    <button class="filter-btn" onclick="setFilter('cat','moisturiser',this)">Moisturiser</button>
+    <button class="filter-btn" onclick="setFilter('cat','sunscreen',this)">Sunscreen</button>
+    <button class="filter-btn" onclick="setFilter('cat','serum',this)">Serum</button>
+    <button class="filter-btn" onclick="setFilter('cat','toner',this)">Toner</button>
+  </div>
+
+  <div class="container">
+    <div class="results-bar">
+      <span class="results-count" id="results-count">Loading...</span>
+      <select class="sort-select" onchange="applyFilters()">
+        <option value="score">Sort by score</option>
+        <option value="mentions">Sort by mentions</option>
+        <option value="price_low">Price: low to high</option>
+        <option value="price_high">Price: high to low</option>
+      </select>
+    </div>
+    <div id="products-list"></div>
   </div>
 </div>
 
-<div class="filters">
-  <span class="filter-label">Skin type</span>
-  <button class="filter-btn active" onclick="setFilter('skin','all',this)">All</button>
-  <button class="filter-btn" onclick="setFilter('skin','oily',this)">Oily</button>
-  <button class="filter-btn" onclick="setFilter('skin','dry',this)">Dry</button>
-  <button class="filter-btn" onclick="setFilter('skin','combination',this)">Combination</button>
-  <button class="filter-btn" onclick="setFilter('skin','sensitive',this)">Sensitive</button>
-
-  <div class="divider"></div>
-
-  <span class="filter-label">Category</span>
-  <button class="filter-btn active" onclick="setFilter('cat','all',this)">All</button>
-  <button class="filter-btn" onclick="setFilter('cat','cleanser',this)">Cleanser</button>
-  <button class="filter-btn" onclick="setFilter('cat','moisturiser',this)">Moisturiser</button>
-  <button class="filter-btn" onclick="setFilter('cat','sunscreen',this)">Sunscreen</button>
-  <button class="filter-btn" onclick="setFilter('cat','serum',this)">Serum</button>
-  <button class="filter-btn" onclick="setFilter('cat','toner',this)">Toner</button>
-</div>
-
-<div class="container">
-  <div class="results-bar">
-    <span class="results-count" id="results-count">Loading...</span>
-    <select class="sort-select" onchange="applyFilters()">
-      <option value="score">Sort by score</option>
-      <option value="mentions">Sort by mentions</option>
-      <option value="price_low">Price: low to high</option>
-      <option value="price_high">Price: high to low</option>
-    </select>
+<!-- DETAIL PAGE -->
+<div class="detail-page" id="detail-page">
+  <div class="container" style="padding-top:32px">
+    <div class="back-btn" onclick="showList()">← Back to all products</div>
+    <div id="detail-content"></div>
   </div>
-  <div id="products-list"></div>
 </div>
 
 <footer>
-  Built with data from <a href="https://reddit.com/r/IndianSkincareAddicts" target="_blank">r/IndianSkincareAddicts</a>
+  Built with data from
+  <a href="https://reddit.com/r/IndianSkincareAddicts" target="_blank">r/IndianSkincareAddicts</a>
   and <a href="https://reddit.com/r/SkincareAddiction" target="_blank">r/SkincareAddiction</a>
   <br/><br/>
   IndiaRecs — community-powered skincare recommendations for India
@@ -391,8 +401,7 @@
 
   function setFilter(type, value, btn) {
     activeFilters[type] = value
-    const group = type === 'skin' ? 0 : 1
-    document.querySelectorAll('.filter-btn').forEach((b, i) => {
+    document.querySelectorAll('.filter-btn').forEach(b => {
       if (b.onclick.toString().includes(`'${type}'`)) b.classList.remove('active')
     })
     btn.classList.add('active')
@@ -402,18 +411,12 @@
   function applyFilters() {
     const search = document.getElementById('search').value.toLowerCase()
     const sort = document.querySelector('.sort-select').value
-
     let filtered = allProducts.filter(p => {
-      const matchSkin = activeFilters.skin === 'all' ||
-        p.skin_type === activeFilters.skin || p.skin_type === 'all'
-      const matchCat = activeFilters.cat === 'all' ||
-        p.product_category === activeFilters.cat
-      const matchSearch = !search ||
-        p.name.toLowerCase().includes(search) ||
-        (p.brand && p.brand.toLowerCase().includes(search))
+      const matchSkin = activeFilters.skin === 'all' || p.skin_type === activeFilters.skin || p.skin_type === 'all'
+      const matchCat = activeFilters.cat === 'all' || p.product_category === activeFilters.cat
+      const matchSearch = !search || p.name.toLowerCase().includes(search) || (p.brand && p.brand.toLowerCase().includes(search))
       return matchSkin && matchCat && matchSearch
     })
-
     filtered.sort((a, b) => {
       if (sort === 'score') return b.score - a.score
       if (sort === 'mentions') return b.mention_count - a.mention_count
@@ -421,7 +424,6 @@
       if (sort === 'price_high') return b.price_inr - a.price_inr
       return 0
     })
-
     renderProducts(filtered)
   }
 
@@ -432,53 +434,158 @@
     return ''
   }
 
+  function getSentimentBar(p) {
+    const total = p.mention_count || 1
+    const neutral = total - p.positive_count - p.negative_count
+    const posW = Math.round((p.positive_count / total) * 100)
+    const neuW = Math.round((neutral / total) * 100)
+    const negW = 100 - posW - neuW
+    return `
+      <div class="sentiment-bar">
+        <div class="sentiment-pos" style="width:${posW}%"></div>
+        <div class="sentiment-neu" style="width:${neuW}%"></div>
+        <div class="sentiment-neg" style="width:${negW}%"></div>
+      </div>`
+  }
+
   function renderProducts(products) {
     const container = document.getElementById('products-list')
     const count = document.getElementById('results-count')
     count.textContent = `${products.length} product${products.length !== 1 ? 's' : ''} found`
-
     if (products.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div style="font-size:32px">🔍</div>
-          <p>No products match your filters.<br/>Try adjusting your search or filters.</p>
-        </div>`
+      container.innerHTML = `<div class="empty-state"><div style="font-size:32px">🔍</div><p>No products match your filters.</p></div>`
       return
     }
+    container.innerHTML = products.map((p, i) => {
+      const total = p.mention_count || 1
+      const posPct = Math.round((p.positive_count / total) * 100)
+      return `
+        <div class="product-card" onclick="showDetail(${p.id})">
+          <div class="rank ${getRankClass(i)}">${i + 1}</div>
+          <div class="product-info">
+            <div class="product-top">
+              <span class="product-name">${p.name}</span>
+              ${p.brand ? `<span class="product-brand">${p.brand}</span>` : ''}
+            </div>
+            <div class="product-tags">
+              ${p.product_category ? `<span class="tag tag-category">${p.product_category}</span>` : ''}
+              ${p.skin_type && p.skin_type !== 'all' ? `<span class="tag tag-skin">${p.skin_type} skin</span>` : ''}
+              ${p.price_inr ? `<span class="tag tag-price">₹${p.price_inr}</span>` : ''}
+            </div>
+            <div class="product-meta">
+              <span>${p.mention_count} mentions</span>
+              <span class="meta-dot"></span>
+              <span>${p.positive_count} positive</span>
+              <span class="meta-dot"></span>
+              <span>${p.negative_count} negative</span>
+            </div>
+            ${getSentimentBar(p)}
+          </div>
+          <div class="score-box">
+            <div class="score-number ${p.score < 20 ? 'low' : ''}">${p.score > 0 ? '+' : ''}${p.score}</div>
+            <div class="score-label">community score</div>
+            <div class="score-pct">${posPct}% positive</div>
+          </div>
+        </div>`
+    }).join('')
+  }
 
-    container.innerHTML = products.map((p, i) => `
-      <div class="product-card">
-        <div class="rank ${getRankClass(i)}">${i + 1}</div>
-        <div class="product-info">
-          <div class="product-top">
-            <span class="product-name">${p.name}</span>
-            ${p.brand ? `<span class="product-brand">${p.brand}</span>` : ''}
-          </div>
-          <div class="product-tags">
-            ${p.product_category ? `<span class="tag tag-category">${p.product_category}</span>` : ''}
-            ${p.skin_type && p.skin_type !== 'all' ? `<span class="tag tag-skin">${p.skin_type} skin</span>` : ''}
-            ${p.price_inr ? `<span class="tag tag-price">₹${p.price_inr}</span>` : ''}
-          </div>
-          <div class="product-meta">
-            <span>${p.mention_count} mentions</span>
-            <span class="meta-dot"></span>
-            <span>${p.positive_count} positive</span>
-            <span class="meta-dot"></span>
-            <span>${p.negative_count} negative</span>
-          </div>
+  async function showDetail(productId) {
+    const product = allProducts.find(p => p.id === productId)
+    if (!product) return
+
+    document.getElementById('list-page').classList.add('hidden')
+    document.getElementById('detail-page').classList.add('active')
+    window.scrollTo(0, 0)
+
+    const total = product.mention_count || 1
+    const neutral = total - product.positive_count - product.negative_count
+    const posPct = Math.round((product.positive_count / total) * 100)
+    const neuPct = Math.round((neutral / total) * 100)
+    const negPct = 100 - posPct - neuPct
+
+    document.getElementById('detail-content').innerHTML = `
+      <div class="detail-header">
+        <div class="detail-title">${product.name}</div>
+        <div class="detail-brand">${product.brand || ''}</div>
+        <div class="detail-tags">
+          ${product.product_category ? `<span class="tag tag-category">${product.product_category}</span>` : ''}
+          ${product.skin_type && product.skin_type !== 'all' ? `<span class="tag tag-skin">${product.skin_type} skin</span>` : ''}
+          ${product.price_inr ? `<span class="tag tag-price">₹${product.price_inr}</span>` : ''}
         </div>
-        <div class="score-box">
-          <div class="score-number ${p.score < 20 ? 'low' : ''}">
-            ${p.score > 0 ? '+' : ''}${p.score}
+        <div class="sentiment-section">
+          <h3>Sentiment breakdown — ${product.mention_count} Reddit mentions</h3>
+          <div class="sentiment-row">
+            <div class="sentiment-row-label">👍 Positive</div>
+            <div class="sentiment-track"><div class="sentiment-fill-pos" style="width:${posPct}%"></div></div>
+            <div class="sentiment-row-count">${product.positive_count}</div>
           </div>
-          <div class="score-label">community score</div>
+          <div class="sentiment-row">
+            <div class="sentiment-row-label">😐 Neutral</div>
+            <div class="sentiment-track"><div class="sentiment-fill-neu" style="width:${neuPct}%"></div></div>
+            <div class="sentiment-row-count">${neutral}</div>
+          </div>
+          <div class="sentiment-row">
+            <div class="sentiment-row-label">👎 Negative</div>
+            <div class="sentiment-track"><div class="sentiment-fill-neg" style="width:${negPct}%"></div></div>
+            <div class="sentiment-row-count">${product.negative_count}</div>
+          </div>
         </div>
       </div>
-    `).join('')
+
+      <div class="detail-grid">
+        <div class="detail-card">
+          <h3>👍 What people love</h3>
+          <div class="pro-item"><span class="pro-icon">+</span> Frequently recommended by community</div>
+          <div class="pro-item"><span class="pro-icon">+</span> ${posPct}% positive sentiment</div>
+          <div class="pro-item"><span class="pro-icon">+</span> ${product.mention_count} total mentions</div>
+        </div>
+        <div class="detail-card">
+          <h3>👎 Watch out for</h3>
+          ${product.negative_count > 0
+            ? `<div class="con-item"><span class="con-icon">−</span> ${product.negative_count} negative mentions</div>
+               <div class="con-item"><span class="con-icon">−</span> May not work for everyone</div>`
+            : `<div class="pro-item"><span class="pro-icon">+</span> No major complaints found</div>`}
+        </div>
+      </div>
+
+      <div class="comments-section" id="comments-section">
+        <h3>Reddit mentions</h3>
+        <div id="comments-list">Loading comments...</div>
+      </div>`
+
+    loadComments(product.name)
+  }
+
+  async function loadComments(productName) {
+    try {
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/mentions?product_name=eq.${encodeURIComponent(productName)}&select=*&limit=10`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }}
+      )
+      const comments = await response.json()
+      const container = document.getElementById('comments-list')
+      if (!comments.length) {
+        container.innerHTML = `<div style="color:#aaa;font-size:14px">No comments yet — they will appear once Reddit data is connected.</div>`
+        return
+      }
+      container.innerHTML = comments.map(c => `
+        <div class="comment-item ${c.sentiment}">
+          <div class="comment-text">${c.comment_text}</div>
+          <div class="comment-meta">r/${c.subreddit} · ${c.sentiment}</div>
+        </div>`).join('')
+    } catch (err) {
+      document.getElementById('comments-list').innerHTML = `<div style="color:#aaa;font-size:14px">Could not load comments.</div>`
+    }
+  }
+
+  function showList() {
+    document.getElementById('list-page').classList.remove('hidden')
+    document.getElementById('detail-page').classList.remove('active')
+    window.scrollTo(0, 0)
   }
 
   loadProducts()
 </script>
-
 </body>
 </html>
