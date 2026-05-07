@@ -6,7 +6,9 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-HEADERS = {"User-Agent": "IndiaRecs/1.0 (research project)"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
 
 SUPABASE_HEADERS = {
     "apikey": SUPABASE_KEY,
@@ -34,7 +36,7 @@ SUBREDDITS = [
     "AsianBeauty"
 ]
 
-BOTS = ["automoderator", "bot", "automod"]
+BOTS = ["automoderator", "automod"]
 
 def is_genuine_review(text):
     if not text or len(text.split()) < 15:
@@ -98,40 +100,35 @@ Rules:
                 sentiment = "neutral"
             return is_review, sentiment
         else:
-            print(f"  Gemini error: {response.status_code} — {response.text[:100]}")
+            print(f"  Gemini error: {response.status_code}")
             return False, "neutral"
     except Exception as e:
         print(f"  Gemini exception: {e}")
         return False, "neutral"
 
-def fetch_posts(subreddit, limit=100):
-    url = f"https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={subreddit}&limit={limit}"
+def fetch_posts(subreddit, limit=25):
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit={limit}"
     try:
+        time.sleep(2)
         response = requests.get(url, headers=HEADERS, timeout=15)
-        print(f"  Posts API status: {response.status_code}")
+        print(f"  Posts status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            if isinstance(data, dict):
-                return data.get("data", [])
-            elif isinstance(data, list):
-                return data
+            return data["data"]["children"]
         return []
     except Exception as e:
         print(f"  Fetch posts error: {e}")
         return []
 
-def fetch_comments(subreddit, limit=200):
-    url = f"https://arctic-shift.photon-reddit.com/api/comments/search?subreddit={subreddit}&limit={limit}"
+def fetch_comments(subreddit, post_id, limit=50):
+    url = f"https://www.reddit.com/r/{subreddit}/comments/{post_id}.json?limit={limit}"
     try:
-        time.sleep(0.5)
+        time.sleep(2)
         response = requests.get(url, headers=HEADERS, timeout=15)
-        print(f"  Comments API status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            if isinstance(data, dict):
-                return data.get("data", [])
-            elif isinstance(data, list):
-                return data
+            comments = data[1]["data"]["children"]
+            return [c["data"].get("body", "") for c in comments if c["kind"] == "t1"]
         return []
     except Exception as e:
         print(f"  Fetch comments error: {e}")
@@ -194,49 +191,62 @@ def update_product(product_name, sentiment):
     except Exception as e:
         print(f"  Update error: {e}")
 
-def process_texts(texts, subreddit, source_type):
-    genuine = 0
-    for text in texts:
-        if not text or text in ["[removed]", "[deleted]", ""]:
-            continue
-        author = text.get("author", "").lower() if isinstance(text, dict) else ""
-        if any(bot in author for bot in BOTS):
-            continue
-        body = text.get("body", text.get("selftext", text.get("title", ""))) if isinstance(text, dict) else text
-        if not body or body in ["[removed]", "[deleted]"]:
-            continue
-        for product in PRODUCTS:
-            if product.lower() in body.lower():
-                if not is_genuine_review(body):
-                    continue
-                print(f"  Gemini checking {product} in {source_type}...")
-                is_review, sentiment = classify_with_gemini(product, body)
-                if is_review:
-                    save_mention(product, body, sentiment, subreddit)
-                    update_product(product, sentiment)
-                    genuine += 1
-                    print(f"  SAVED: {product} — {sentiment}")
-                time.sleep(0.3)
-    return genuine
-
-def scrape_subreddit(subreddit, limit=100):
+def scrape_subreddit(subreddit, limit=25):
     print(f"\nScraping r/{subreddit}...")
-    total = 0
-
     posts = fetch_posts(subreddit, limit)
     print(f"  Found {len(posts)} posts")
-    total += process_texts(posts, subreddit, "post")
+    total = 0
 
-    comments = fetch_comments(subreddit, limit * 2)
-    print(f"  Found {len(comments)} comments")
-    total += process_texts(comments, subreddit, "comment")
+    for post_wrapper in posts:
+        post = post_wrapper["data"]
+        post_id = post.get("id", "")
+        author = post.get("author", "").lower()
+
+        if any(bot in author for bot in BOTS):
+            continue
+
+        title = post.get("title", "")
+        selftext = post.get("selftext", "")
+
+        for text in [title, selftext]:
+            if not text or text in ["[removed]", "[deleted]"]:
+                continue
+            for product in PRODUCTS:
+                if product.lower() in text.lower():
+                    if not is_genuine_review(text):
+                        continue
+                    print(f"  Gemini checking: {product}...")
+                    is_review, sentiment = classify_with_gemini(product, text)
+                    if is_review:
+                        save_mention(product, text, sentiment, subreddit)
+                        update_product(product, sentiment)
+                        total += 1
+                        print(f"  SAVED: {product} — {sentiment}")
+                    time.sleep(0.5)
+
+        comments = fetch_comments(subreddit, post_id)
+        for comment in comments:
+            if not comment or comment in ["[removed]", "[deleted]"]:
+                continue
+            for product in PRODUCTS:
+                if product.lower() in comment.lower():
+                    if not is_genuine_review(comment):
+                        continue
+                    print(f"  Gemini checking: {product}...")
+                    is_review, sentiment = classify_with_gemini(product, comment)
+                    if is_review:
+                        save_mention(product, comment, sentiment, subreddit)
+                        update_product(product, sentiment)
+                        total += 1
+                        print(f"  SAVED: {product} — {sentiment}")
+                    time.sleep(0.5)
 
     print(f"  r/{subreddit} done — {total} genuine reviews saved")
 
 if __name__ == "__main__":
-    print("Starting IndiaRecs smart scraper...")
-    print("Arctic Shift + Gemini AI filtering\n")
+    print("Starting IndiaRecs scraper...")
+    print("Reddit public JSON + Gemini AI filtering\n")
     for subreddit in SUBREDDITS:
-        scrape_subreddit(subreddit, limit=50)
-        time.sleep(2)
+        scrape_subreddit(subreddit, limit=25)
+        time.sleep(3)
     print("\nAll done!")
