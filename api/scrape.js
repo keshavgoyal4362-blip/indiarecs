@@ -5,17 +5,17 @@ export default async function handler(req, res) {
   const ARCTIC_BASE = "https://arctic-shift.photon-reddit.com/api";
 
   const PRODUCTS = [
-    { name: "Minimalist Niacinamide 10%", keywords: ["minimalist niacinamide", "minimalist 10%", "minimalist niacin"], brand: "Minimalist", product_category: "serum", skin_type: "oily", price_inr: 599 },
-    { name: "Cetaphil Gentle Cleanser", keywords: ["cetaphil gentle", "cetaphil cleanser", "cetaphil wash", "cetaphil"], brand: "Cetaphil", product_category: "cleanser", skin_type: "sensitive", price_inr: 399 },
-    { name: "Neutrogena Sunscreen SPF 50", keywords: ["neutrogena sunscreen", "neutrogena spf", "neutrogena ultra sheer", "neutrogena"], brand: "Neutrogena", product_category: "sunscreen", skin_type: "combination", price_inr: 349 },
-    { name: "Dot & Key Vitamin C Serum", keywords: ["dot & key vitamin c", "dot and key vitamin c", "dot & key"], brand: "Dot & Key", product_category: "serum", skin_type: "dry", price_inr: 695 },
-    { name: "Plum Green Tea Toner", keywords: ["plum green tea toner", "plum toner", "plum green tea", "plum skincare"], brand: "Plum", product_category: "toner", skin_type: "oily", price_inr: 315 },
+    { name: "Minimalist Niacinamide 10%", searchTerms: ["minimalist niacinamide", "minimalist 10%"], brand: "Minimalist", product_category: "serum", skin_type: "oily", price_inr: 599 },
+    { name: "Cetaphil Gentle Cleanser", searchTerms: ["cetaphil cleanser", "cetaphil gentle"], brand: "Cetaphil", product_category: "cleanser", skin_type: "sensitive", price_inr: 399 },
+    { name: "Neutrogena Sunscreen SPF 50", searchTerms: ["neutrogena sunscreen", "neutrogena ultra sheer"], brand: "Neutrogena", product_category: "sunscreen", skin_type: "combination", price_inr: 349 },
+    { name: "Dot & Key Vitamin C Serum", searchTerms: ["dot and key vitamin c", "dot & key vitamin"], brand: "Dot & Key", product_category: "serum", skin_type: "dry", price_inr: 695 },
+    { name: "Plum Green Tea Toner", searchTerms: ["plum green tea toner", "plum toner"], brand: "Plum", product_category: "toner", skin_type: "oily", price_inr: 315 },
   ];
 
-  const POSITIVE_WORDS = ["love", "great", "amazing", "excellent", "perfect", "good", "best", "recommend", "works", "effective", "holy grail", "repurchase", "gentle", "lightweight", "glowing", "cleared", "improved", "favourite", "favorite", "nice", "smooth", "hydrated", "worth", "non-comedogenic", "no breakout", "no purging"];
-  const NEGATIVE_WORDS = ["hate", "terrible", "awful", "bad", "worst", "broke me out", "breakout", "irritation", "burning", "sticky", "greasy", "waste", "disappointed", "doesn't work", "didn't work", "avoid", "rash", "allergic", "pilling", "white cast", "purging", "stings", "too heavy", "not worth"];
+  const POSITIVE_WORDS = ["love", "great", "amazing", "excellent", "perfect", "good", "best", "recommend", "works", "effective", "holy grail", "repurchase", "gentle", "lightweight", "glowing", "cleared", "improved", "favourite", "favorite", "nice", "smooth", "hydrated", "worth", "no breakout", "no purging"];
+  const NEGATIVE_WORDS = ["hate", "terrible", "awful", "bad", "worst", "broke me out", "breakout", "irritation", "burning", "sticky", "greasy", "waste", "disappointed", "doesn't work", "didn't work", "avoid", "rash", "allergic", "pilling", "white cast", "purging", "stings", "not worth"];
 
-  const SUBREDDITS = ["IndianSkincareAddicts", "SkincareAddiction", "AsianBeauty", "tretinoin"];
+  const SUBREDDIT = "IndianSkincareAddicts";
 
   const results = {};
   const mentionsToInsert = [];
@@ -24,21 +24,18 @@ export default async function handler(req, res) {
     results[product.name] = { positive: 0, negative: 0, mentions: 0 };
   }
 
-  // Search COMMENTS
-  for (const subreddit of SUBREDDITS) {
-    try {
-      const url = `${ARCTIC_BASE}/comments/search?subreddit=${subreddit}&limit=500&sort=desc`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const comments = data.data || [];
+  for (const product of PRODUCTS) {
+    for (const term of product.searchTerms) {
+      try {
+        // Search comments by keyword
+        const commentUrl = `${ARCTIC_BASE}/comments/search?subreddit=${SUBREDDIT}&body=${encodeURIComponent(term)}&limit=100&sort=desc`;
+        const commentRes = await fetch(commentUrl);
+        const commentData = await commentRes.json();
+        const comments = commentData.data || [];
 
-      for (const comment of comments) {
-        const text = (comment.body || "").toLowerCase();
-        if (!text || text === "[deleted]" || text === "[removed]") continue;
-
-        for (const product of PRODUCTS) {
-          const mentioned = product.keywords.some(kw => text.includes(kw.toLowerCase()));
-          if (!mentioned) continue;
+        for (const comment of comments) {
+          const text = (comment.body || "").toLowerCase();
+          if (!text || text === "[deleted]" || text === "[removed]") continue;
 
           results[product.name].mentions++;
           const posScore = POSITIVE_WORDS.filter(w => text.includes(w)).length;
@@ -51,31 +48,20 @@ export default async function handler(req, res) {
             product_name: product.name,
             comment_text: comment.body.slice(0, 500),
             sentiment,
-            subreddit,
+            subreddit: SUBREDDIT,
             created_at: new Date().toISOString(),
           });
         }
-      }
-    } catch (e) {
-      console.error(`Error fetching comments from ${subreddit}:`, e.message);
-    }
-  }
 
-  // Search POSTS (titles + selftext)
-  for (const subreddit of SUBREDDITS) {
-    try {
-      const url = `${ARCTIC_BASE}/posts/search?subreddit=${subreddit}&limit=500&sort=desc`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const posts = data.data || [];
+        // Search post titles by keyword
+        const postUrl = `${ARCTIC_BASE}/posts/search?subreddit=${SUBREDDIT}&title=${encodeURIComponent(term)}&limit=100&sort=desc`;
+        const postRes = await fetch(postUrl);
+        const postData = await postRes.json();
+        const posts = postData.data || [];
 
-      for (const post of posts) {
-        const text = ((post.title || "") + " " + (post.selftext || "")).toLowerCase();
-        if (!text.trim()) continue;
-
-        for (const product of PRODUCTS) {
-          const mentioned = product.keywords.some(kw => text.includes(kw.toLowerCase()));
-          if (!mentioned) continue;
+        for (const post of posts) {
+          const text = ((post.title || "") + " " + (post.selftext || "")).toLowerCase();
+          if (!text.trim()) continue;
 
           results[product.name].mentions++;
           const posScore = POSITIVE_WORDS.filter(w => text.includes(w)).length;
@@ -88,13 +74,14 @@ export default async function handler(req, res) {
             product_name: product.name,
             comment_text: (post.title + ": " + (post.selftext || "")).slice(0, 500),
             sentiment,
-            subreddit,
+            subreddit: SUBREDDIT,
             created_at: new Date().toISOString(),
           });
         }
+
+      } catch (e) {
+        console.error(`Error fetching "${term}":`, e.message);
       }
-    } catch (e) {
-      console.error(`Error fetching posts from ${subreddit}:`, e.message);
     }
   }
 
