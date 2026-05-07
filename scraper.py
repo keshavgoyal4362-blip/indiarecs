@@ -1,5 +1,4 @@
 import os
-import re
 import time
 import requests
 
@@ -16,7 +15,6 @@ SUPABASE_HEADERS = {
     "Prefer": "return=minimal"
 }
 
-# Indian skincare products to track
 PRODUCTS = [
     "Minimalist", "Cetaphil", "Neutrogena", "Plum",
     "Dot & Key", "Mamaearth", "Lakme", "Biotique",
@@ -24,7 +22,7 @@ PRODUCTS = [
     "MCaffeine", "The Derma Co", "Fixderma",
     "Sebamed", "CeraVe", "La Roche-Posay", "Innisfree",
     "Himalaya", "Garnier", "Lotus", "VLCC", "Jovees",
-    "Nykaa Naturals", "mCaffeine", "Foxtale", "Pilgrim",
+    "Nykaa Naturals", "Foxtale", "Pilgrim",
     "Anua", "Some By Mi", "Cosrx", "Bioderma",
     "Avene", "Ducray", "Vichy", "Kiehl's"
 ]
@@ -36,123 +34,110 @@ SUBREDDITS = [
     "AsianBeauty"
 ]
 
-# Smart filter — only keep genuine review comments
+BOTS = ["automoderator", "bot", "automod"]
+
 def is_genuine_review(text):
     if not text or len(text.split()) < 15:
         return False
-
     text_lower = text.lower()
-
-    # Filter out questions
     question_starters = [
-        "where can", "where do", "which one",
-        "can anyone", "does anyone", "has anyone tried",
-        "what is", "what are", "how do", "how long",
-        "is there", "are there", "should i", "would you"
+        "where can", "where do", "which one should",
+        "can anyone recommend", "does anyone know",
+        "has anyone tried", "what is", "how do i",
+        "should i buy", "is there a"
     ]
     for q in question_starters:
         if text_lower.startswith(q):
             return False
-
-    # Must contain experience signals
     experience_signals = [
         "i use", "i used", "been using", "i tried",
         "my skin", "works for me", "worked for me",
-        "doesn't work", "did not work", "did not help",
-        "i bought", "purchased", "repurchased", "i repurchase",
-        "switched to", "my routine", "in my experience",
-        "personally", "i have been", "i've been",
-        "i noticed", "i saw", "i felt", "broke me out",
-        "broke out", "cleared my", "helped my",
-        "love this", "hate this", "would recommend",
-        "would not recommend", "holy grail", "HG"
+        "doesn't work", "did not work", "i bought",
+        "purchased", "repurchased", "switched to",
+        "my routine", "in my experience", "personally",
+        "i've been", "i noticed", "broke me out",
+        "cleared my", "helped my", "love this",
+        "hate this", "would recommend", "holy grail",
+        "i apply", "i started", "after using"
     ]
+    return any(signal in text_lower for signal in experience_signals)
 
-    has_experience = any(signal in text_lower for signal in experience_signals)
-    return has_experience
-
-# Gemini LLM classifier
 def classify_with_gemini(product_name, comment_text):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-
     prompt = f"""You are analyzing Reddit comments about skincare products.
 
 Product: {product_name}
-Comment: {comment_text}
+Comment: {comment_text[:500]}
 
-Answer these three questions in exactly this format:
+Answer in exactly this format:
 IS_REVIEW: yes or no
 SENTIMENT: positive or negative or neutral
-SUMMARY: one sentence max describing what the person said about the product
+SUMMARY: one sentence max
 
 Rules:
-- IS_REVIEW is yes only if the person is sharing their own experience with this product
-- IS_REVIEW is no if it is a question, comparison, or passing mention
-- SENTIMENT is based only on what they say about this specific product
-- SUMMARY should be blank if IS_REVIEW is no"""
+- IS_REVIEW is yes only if the person shares their own experience with this product
+- IS_REVIEW is no if it is a question, passing mention, or bot message
+- SENTIMENT is based only on what they say about this specific product"""
 
     try:
         response = requests.post(url, json={
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 100}
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 80}
         }, timeout=15)
 
         if response.status_code == 200:
             text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
-            lines = text.strip().split("\n")
             result = {}
-            for line in lines:
+            for line in text.strip().split("\n"):
                 if ":" in line:
                     key, val = line.split(":", 1)
                     result[key.strip()] = val.strip().lower()
-
             is_review = result.get("is_review", "no") == "yes"
             sentiment = result.get("sentiment", "neutral")
-            summary = result.get("summary", "")
-
             if sentiment not in ["positive", "negative", "neutral"]:
                 sentiment = "neutral"
-
-            return is_review, sentiment, summary
+            return is_review, sentiment
         else:
-            print(f"Gemini error: {response.status_code}")
-            return False, "neutral", ""
-
+            print(f"  Gemini error: {response.status_code} — {response.text[:100]}")
+            return False, "neutral"
     except Exception as e:
-        print(f"Gemini exception: {e}")
-        return False, "neutral", ""
+        print(f"  Gemini exception: {e}")
+        return False, "neutral"
 
-# Fetch posts from Arctic Shift
 def fetch_posts(subreddit, limit=100):
-    url = f"https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={subreddit}&limit={limit}&sort=new"
+    url = f"https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={subreddit}&limit={limit}"
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
+        print(f"  Posts API status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            return data.get("data", [])
-        else:
-            print(f"Arctic Shift error for r/{subreddit}: {response.status_code}")
-            return []
+            if isinstance(data, dict):
+                return data.get("data", [])
+            elif isinstance(data, list):
+                return data
+        return []
     except Exception as e:
-        print(f"Fetch error: {e}")
+        print(f"  Fetch posts error: {e}")
         return []
 
-# Fetch comments for a post
-def fetch_comments(post_id, subreddit, limit=50):
-    url = f"https://arctic-shift.photon-reddit.com/api/comments/search?link_id={post_id}&limit={limit}"
+def fetch_comments(subreddit, limit=200):
+    url = f"https://arctic-shift.photon-reddit.com/api/comments/search?subreddit={subreddit}&limit={limit}"
     try:
         time.sleep(0.5)
         response = requests.get(url, headers=HEADERS, timeout=15)
+        print(f"  Comments API status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            return data.get("data", [])
+            if isinstance(data, dict):
+                return data.get("data", [])
+            elif isinstance(data, list):
+                return data
         return []
     except Exception as e:
-        print(f"Comment fetch error: {e}")
+        print(f"  Fetch comments error: {e}")
         return []
 
-# Save mention to Supabase
-def save_mention(product_name, comment_text, sentiment, subreddit, summary=""):
+def save_mention(product_name, comment_text, sentiment, subreddit):
     try:
         requests.post(
             f"{SUPABASE_URL}/rest/v1/mentions",
@@ -165,9 +150,8 @@ def save_mention(product_name, comment_text, sentiment, subreddit, summary=""):
             }
         )
     except Exception as e:
-        print(f"Save mention error: {e}")
+        print(f"  Save error: {e}")
 
-# Update product score in Supabase
 def update_product(product_name, sentiment):
     try:
         res = requests.get(
@@ -175,14 +159,11 @@ def update_product(product_name, sentiment):
             headers=SUPABASE_HEADERS
         )
         data = res.json()
-
         if data:
             p = data[0]
             new_pos = p["positive_count"] + (1 if sentiment == "positive" else 0)
             new_neg = p["negative_count"] + (1 if sentiment == "negative" else 0)
             new_mentions = p["mention_count"] + 1
-            new_score = new_pos - new_neg
-
             requests.patch(
                 f"{SUPABASE_URL}/rest/v1/products?name=eq.{requests.utils.quote(product_name)}",
                 headers=SUPABASE_HEADERS,
@@ -190,7 +171,7 @@ def update_product(product_name, sentiment):
                     "mention_count": new_mentions,
                     "positive_count": new_pos,
                     "negative_count": new_neg,
-                    "score": new_score
+                    "score": new_pos - new_neg
                 }
             )
         else:
@@ -211,67 +192,51 @@ def update_product(product_name, sentiment):
                 }
             )
     except Exception as e:
-        print(f"Update product error: {e}")
+        print(f"  Update error: {e}")
 
-# Main scraper
+def process_texts(texts, subreddit, source_type):
+    genuine = 0
+    for text in texts:
+        if not text or text in ["[removed]", "[deleted]", ""]:
+            continue
+        author = text.get("author", "").lower() if isinstance(text, dict) else ""
+        if any(bot in author for bot in BOTS):
+            continue
+        body = text.get("body", text.get("selftext", text.get("title", ""))) if isinstance(text, dict) else text
+        if not body or body in ["[removed]", "[deleted]"]:
+            continue
+        for product in PRODUCTS:
+            if product.lower() in body.lower():
+                if not is_genuine_review(body):
+                    continue
+                print(f"  Gemini checking {product} in {source_type}...")
+                is_review, sentiment = classify_with_gemini(product, body)
+                if is_review:
+                    save_mention(product, body, sentiment, subreddit)
+                    update_product(product, sentiment)
+                    genuine += 1
+                    print(f"  SAVED: {product} — {sentiment}")
+                time.sleep(0.3)
+    return genuine
+
 def scrape_subreddit(subreddit, limit=100):
     print(f"\nScraping r/{subreddit}...")
+    total = 0
+
     posts = fetch_posts(subreddit, limit)
-    print(f"Found {len(posts)} posts")
+    print(f"  Found {len(posts)} posts")
+    total += process_texts(posts, subreddit, "post")
 
-    genuine_reviews = 0
-    gemini_calls = 0
+    comments = fetch_comments(subreddit, limit * 2)
+    print(f"  Found {len(comments)} comments")
+    total += process_texts(comments, subreddit, "comment")
 
-    for post in posts:
-        post_id = post.get("id", "")
-        title = post.get("title", "")
-        selftext = post.get("selftext", "")
-
-        # Check post title and body
-        texts_to_check = []
-        if title:
-            texts_to_check.append(title)
-        if selftext and selftext not in ["[removed]", "[deleted]", ""]:
-            texts_to_check.append(selftext)
-
-        # Fetch and check comments
-        comments = fetch_comments(post_id, subreddit)
-        for comment in comments:
-            body = comment.get("body", "")
-            if body and body not in ["[removed]", "[deleted]"]:
-                texts_to_check.append(body)
-
-        # Process each text
-        for text in texts_to_check:
-            for product in PRODUCTS:
-                if product.lower() in text.lower():
-
-                    # Step 1: Smart keyword filter
-                    if not is_genuine_review(text):
-                        continue
-
-                    # Step 2: Gemini classification
-                    print(f"  Gemini checking: {product} mention...")
-                    is_review, sentiment, summary = classify_with_gemini(product, text)
-                    gemini_calls += 1
-
-                    if is_review:
-                        save_mention(product, text, sentiment, subreddit, summary)
-                        update_product(product, sentiment)
-                        genuine_reviews += 1
-                        print(f"  SAVED: {product} — {sentiment}")
-
-                    # Small delay to avoid rate limiting
-                    time.sleep(0.3)
-
-    print(f"r/{subreddit} done — {genuine_reviews} genuine reviews saved, {gemini_calls} Gemini calls used")
+    print(f"  r/{subreddit} done — {total} genuine reviews saved")
 
 if __name__ == "__main__":
     print("Starting IndiaRecs smart scraper...")
-    print("Using Arctic Shift + Gemini AI filtering\n")
-
+    print("Arctic Shift + Gemini AI filtering\n")
     for subreddit in SUBREDDITS:
         scrape_subreddit(subreddit, limit=50)
         time.sleep(2)
-
-    print("\nAll done! Check your Supabase database and refresh your website.")
+    print("\nAll done!")
