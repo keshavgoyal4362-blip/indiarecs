@@ -244,7 +244,7 @@ def scrape_subreddit(subreddit, limit=25):
     print(f"  r/{subreddit} done — {total} genuine reviews saved")
 
 if __name__ == "__main__":
-    print("Starting IndiaRecs scraper v2...")
+    print("Starting IndiaRecs scraper...")
     print("Reddit public JSON + Gemini AI filtering\n")
     for subreddit in SUBREDDITS:
         scrape_subreddit(subreddit, limit=25)
