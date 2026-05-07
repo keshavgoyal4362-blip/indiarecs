@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   const POSITIVE_WORDS = ["love", "great", "amazing", "excellent", "perfect", "good", "best", "recommend", "works", "effective", "holy grail", "repurchase", "gentle", "lightweight", "glowing", "cleared", "improved", "favourite", "favorite", "nice", "smooth", "hydrated", "worth", "non-comedogenic", "no breakout", "no purging"];
   const NEGATIVE_WORDS = ["hate", "terrible", "awful", "bad", "worst", "broke me out", "breakout", "irritation", "burning", "sticky", "greasy", "waste", "disappointed", "doesn't work", "didn't work", "avoid", "rash", "allergic", "pilling", "white cast", "purging", "stings", "too heavy", "not worth"];
 
-  const SUBREDDITS = ["IndianSkincareAddicts", "IndianBeautyTalks", "IndianBeautyDeals", "IndianMakeupAddicts"];
+  const SUBREDDITS = ["IndianSkincareAddicts", "SkincareAddiction", "AsianBeauty", "tretinoin"];
 
   const results = {};
   const mentionsToInsert = [];
