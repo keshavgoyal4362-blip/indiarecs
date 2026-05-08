@@ -7,6 +7,7 @@ auto-creates new products in Supabase. RedditRecs-style.
 import os
 import re
 import json
+import time
 from apify_client import ApifyClient
 from supabase import create_client
 import google.generativeai as genai
@@ -40,7 +41,7 @@ VALID_CATEGORIES = {"cleanser", "moisturiser", "sunscreen", "serum", "toner", "o
 apify = ApifyClient(APIFY_TOKEN)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
-gemini = genai.GenerativeModel("gemini-2.5-flash")
+gemini = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 
 def is_genuine_review(text):
@@ -90,6 +91,7 @@ If no specific branded products are mentioned: {{"products": []}}
 Respond with ONLY valid JSON. No markdown, no other text."""
     try:
         response = gemini.generate_content(prompt)
+        time.sleep(5)
         clean = response.text.strip()
         clean = re.sub(r"^```(?:json)?", "", clean).strip()
         clean = re.sub(r"```$", "", clean).strip()
