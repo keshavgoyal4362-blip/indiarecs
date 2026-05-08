@@ -1,7 +1,7 @@
 """
-IndiaRecs Scraper — Apify Edition
-Scrapes Reddit via Apify, filters genuine reviews, runs sentiment 
-analysis with Gemini, saves results to Supabase.
+IndiaRecs Scraper — Auto-Discovery Edition
+Scrapes Reddit, uses Gemini to extract products + sentiment in one pass,
+auto-creates new products in Supabase. RedditRecs-style.
 """
 
 import os
@@ -27,6 +27,16 @@ MAX_ITEMS = 50
 MAX_POSTS_PER_SUB = 10
 MAX_COMMENTS = 15
 
+GENERIC_TERMS = {
+    "moisturizer", "moisturiser", "cleanser", "sunscreen",
+    "serum", "toner", "facewash", "face wash", "cream",
+    "lotion", "scrub", "mask", "exfoliant", "retinol",
+    "vitamin c", "niacinamide", "salicylic acid", "spf",
+    "sunblock", "spot treatment",
+}
+
+VALID_CATEGORIES = {"cleanser", "moisturiser", "sunscreen", "serum", "toner", "other"}
+
 apify = ApifyClient(APIFY_TOKEN)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
@@ -44,38 +54,40 @@ def is_genuine_review(text):
         "been using", "i tried", "i've tried",
         "my skin", "for me", "works for me",
         "repurchased", "i love", "i hate",
-        "after using", "since using",
+        "after using", "since using", "highly recommend",
+        "love this", "hate this", "this product",
     ]
     return any(s in text_lower for s in signals)
 
 
-def find_product_match(text, products):
-    text_lower = text.lower()
-    for product in products:
-        if product["name"].lower() in text_lower:
-            return product
-        brand = product.get("brand") or ""
-        if len(brand) > 3 and brand.lower() in text_lower:
-            ptype = product.get("product_category") or ""
-            if ptype and ptype in text_lower:
-                return product
-    return None
+def extract_products_with_gemini(text):
+    prompt = f"""Analyze this Reddit comment about skincare. Extract any specific BRANDED products mentioned and the user's sentiment about each.
 
-
-def classify_sentiment(text, product_name):
-    prompt = f"""Analyze this Reddit comment about a skincare product and respond ONLY with valid JSON.
-
-Product: {product_name}
 Comment: {text}
 
-Return JSON with these exact fields:
+STRICT RULES:
+- Only extract specific branded products (e.g., "Minimalist Niacinamide 10%", "Cetaphil Gentle Cleanser", "Cosrx Snail Mucin")
+- Brand alone is OK only if category is clear from context (e.g., "Cetaphil cleanser")
+- DO NOT extract generic terms ("moisturizer", "sunscreen", "vitamin c") without a brand
+- DO NOT extract products mentioned only in questions
+- DO NOT extract products the user has NOT personally used
+- Be conservative — when in doubt, leave it out
+
+Return JSON exactly:
 {{
-  "is_review": "yes" or "no",
-  "sentiment": "positive", "negative", or "neutral",
-  "summary": "one short sentence"
+  "products": [
+    {{
+      "name": "Full product name with brand",
+      "brand": "Brand name only",
+      "category": "cleanser" or "moisturiser" or "sunscreen" or "serum" or "toner" or "other",
+      "sentiment": "positive" or "negative" or "neutral"
+    }}
+  ]
 }}
 
-Respond with only the JSON, no other text."""
+If no specific branded products are mentioned: {{"products": []}}
+
+Respond with ONLY valid JSON. No markdown, no other text."""
     try:
         response = gemini.generate_content(prompt)
         clean = response.text.strip()
@@ -85,6 +97,57 @@ Respond with only the JSON, no other text."""
     except Exception as e:
         print(f"  Gemini error: {e}")
         return None
+
+
+def is_valid_product(extracted):
+    name = (extracted.get("name") or "").strip()
+    brand = (extracted.get("brand") or "").strip()
+    category = (extracted.get("category") or "").strip().lower()
+    if not name or len(name) < 5:
+        return False
+    if not brand or len(brand) < 3:
+        return False
+    if name.lower() in GENERIC_TERMS or brand.lower() in GENERIC_TERMS:
+        return False
+    if category not in VALID_CATEGORIES:
+        return False
+    return True
+
+
+def find_or_create_product(extracted, existing_products):
+    name_lower = extracted["name"].lower()
+    brand_lower = extracted["brand"].lower()
+    category = extracted["category"]
+
+    for p in existing_products:
+        if p["name"].lower() == name_lower:
+            return p, False
+
+    for p in existing_products:
+        if (p.get("brand") or "").lower() == brand_lower and \
+           (p.get("product_category") or "") == category:
+            return p, False
+
+    new_data = {
+        "name": extracted["name"],
+        "category": "skincare",
+        "brand": extracted["brand"],
+        "product_category": category,
+        "mention_count": 0,
+        "positive_count": 0,
+        "negative_count": 0,
+        "score": 0,
+        "skin_type": "all",
+        "price_inr": 0,
+    }
+    try:
+        result = supabase.table("products").insert(new_data).execute()
+        new_data["id"] = result.data[0]["id"]
+        existing_products.append(new_data)
+        return new_data, True
+    except Exception as e:
+        print(f"  Insert failed: {e}")
+        return None, False
 
 
 def save_mention(product, comment_text, sentiment, subreddit):
@@ -112,7 +175,10 @@ def save_mention(product, comment_text, sentiment, subreddit):
             "score": score,
         }).eq("id", product["id"]).execute()
 
-        print(f"  Saved {sentiment} mention for {product['name']}")
+        product["mention_count"] = mentions
+        product["positive_count"] = positive
+        product["negative_count"] = negative
+        product["score"] = score
         return True
     except Exception as e:
         print(f"  Save failed: {e}")
@@ -121,15 +187,12 @@ def save_mention(product, comment_text, sentiment, subreddit):
 
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper Starting")
+    print("IndiaRecs Scraper - Auto-Discovery Edition")
     print("=" * 60)
 
-    print("\n[1/4] Loading products from Supabase...")
-    products = supabase.table("products").select("*").execute().data
-    print(f"  Loaded {len(products)} products")
-    if not products:
-        print("  No products in database. Add some first.")
-        return
+    print("\n[1/4] Loading existing products...")
+    existing_products = supabase.table("products").select("*").execute().data
+    print(f"  {len(existing_products)} products in DB")
 
     print("\n[2/4] Starting Apify Reddit scraper...")
     run_input = {
@@ -148,14 +211,15 @@ def main():
     print(f"  Apify run done: {run['id']}")
     print(f"  Cost: ${run.get('usageTotalUsd', 0):.3f}")
 
-    print("\n[3/4] Processing scraped items...")
+    print("\n[3/4] Processing items...")
     items = list(apify.dataset(run["defaultDatasetId"]).iterate_items())
     print(f"  Got {len(items)} items")
 
     saved = 0
+    new_products = 0
     skip_filter = 0
-    skip_match = 0
-    skip_not_review = 0
+    skip_no_extract = 0
+    skip_invalid = 0
 
     for item in items:
         if item.get("dataType") not in ("post", "comment"):
@@ -168,29 +232,39 @@ def main():
             skip_filter += 1
             continue
 
-        matched = find_product_match(text, products)
-        if not matched:
-            skip_match += 1
-            continue
-
-        print(f"\n  Match: {matched['name']}")
-        print(f"  Preview: {text[:100]}...")
-
-        result = classify_sentiment(text, matched["name"])
-        if not result or result.get("is_review") != "yes":
-            skip_not_review += 1
+        result = extract_products_with_gemini(text)
+        if not result or not result.get("products"):
+            skip_no_extract += 1
             continue
 
         subreddit = item.get("communityName", "unknown")
-        if save_mention(matched, text, result["sentiment"], subreddit):
-            saved += 1
+        for extracted in result["products"]:
+            if not is_valid_product(extracted):
+                skip_invalid += 1
+                continue
+
+            product, is_new = find_or_create_product(extracted, existing_products)
+            if not product:
+                continue
+            if is_new:
+                new_products += 1
+                print(f"  + New product: {product['name']}")
+
+            sentiment = extracted.get("sentiment", "neutral")
+            if sentiment not in ("positive", "negative", "neutral"):
+                sentiment = "neutral"
+
+            if save_mention(product, text, sentiment, subreddit):
+                saved += 1
+                print(f"    {sentiment} → {product['name']}")
 
     print("\n[4/4] Done!")
     print("=" * 60)
-    print(f"  Saved:                {saved}")
-    print(f"  Skipped (filter):     {skip_filter}")
-    print(f"  Skipped (no match):   {skip_match}")
-    print(f"  Skipped (not review): {skip_not_review}")
+    print(f"  New products discovered: {new_products}")
+    print(f"  Mentions saved:          {saved}")
+    print(f"  Skipped (filter):        {skip_filter}")
+    print(f"  Skipped (no products):   {skip_no_extract}")
+    print(f"  Skipped (invalid):       {skip_invalid}")
     print("=" * 60)
 
 
