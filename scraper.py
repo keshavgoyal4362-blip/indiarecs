@@ -136,7 +136,7 @@ def main():
         "startUrls": [{"url": url} for url in SUBREDDITS],
         "skipComments": False,
         "skipUserPosts": False,
-        "skipCommunity": True,
+        "skipCommunity": False,
         "maxItems": MAX_ITEMS,
         "maxPostCount": MAX_POSTS_PER_SUB,
         "maxComments": MAX_COMMENTS,
