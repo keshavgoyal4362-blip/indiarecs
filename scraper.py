@@ -21,7 +21,7 @@ SUBREDDITS = [
     "https://www.reddit.com/r/IndianSkincareAddicts/",
     "https://www.reddit.com/r/SkincareAddiction/",
     "https://www.reddit.com/r/AsianBeauty/",
-    "https://www.reddit.com/r/indianbeautyhauls/",
+    "https://www.reddit.com/r/30PlusSkinCare/",
 ]
 
 MAX_ITEMS = 50
@@ -45,20 +45,21 @@ gemini = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 
 def is_genuine_review(text):
+    """Permissive filter — let Gemini do the heavy lifting."""
     if not text or len(text.split()) < 15:
         return False
     if "AutoModerator" in text or "[deleted]" in text or "[removed]" in text:
         return False
     text_lower = text.lower()
-    signals = [
-        "i use", "i used", "i've used", "ive used",
-        "been using", "i tried", "i've tried",
-        "my skin", "for me", "works for me",
-        "repurchased", "i love", "i hate",
-        "after using", "since using", "highly recommend",
-        "love this", "hate this", "this product",
+    # Must mention something skincare-related
+    skincare_keywords = [
+        "skin", "moisturiz", "moisturis", "serum", "sunscreen", "spf",
+        "cleanser", "face wash", "facewash", "toner", "exfoliat",
+        "retinol", "niacinamide", "vitamin c", "salicylic", "hyaluronic",
+        "acne", "pimple", "breakout", "pigment", "ceramide",
+        "peptide", "routine", "skincare", "dermatologist",
     ]
-    return any(s in text_lower for s in signals)
+    return any(k in text_lower for k in skincare_keywords)
 
 
 def extract_products_with_gemini(text):
