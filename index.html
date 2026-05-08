@@ -1,993 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IndiaRecs — Authentic Product Reviews from Reddit</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Trebuchet+MS&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Trebuchet MS', Trebuchet, sans-serif;
-      background: #0d0d0d;
-      color: #f0f0f0;
-      min-height: 100vh;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IndiaRecs — Real product reviews from Reddit, for India</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1a1a1a;
+    --border: #222;
+    --text: #f5f5f5;
+    --text-dim: #999;
+    --text-muted: #666;
+    --accent: #ff6b35;
+    --positive: #06b96f;
+    --purple: #a855f7;
+    --pink: #ec4899;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
-    /* HEADER */
-    header {
-      background: #111;
-      border-bottom: 1px solid #222;
-      padding: 0 32px;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      height: 56px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .logo-flag { font-size: 20px; }
-    .logo-beta {
-      font-size: 10px;
-      background: #e94560;
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-    nav {
-      display: flex;
-      gap: 4px;
-      margin-left: 8px;
-    }
-    .nav-item {
-      padding: 6px 12px;
-      font-size: 13px;
-      color: #aaa;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .nav-item:hover { color: #fff; background: #1a1a1a; }
-    .nav-item.active { color: #fff; }
-    .header-search {
-      flex: 1;
-      max-width: 380px;
-      margin-left: auto;
-      position: relative;
-    }
-    .header-search input {
-      width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 8px 16px 8px 36px;
-      font-size: 13px;
-      color: #f0f0f0;
-      outline: none;
-      font-family: inherit;
-    }
-    .header-search input:focus { border-color: #e94560; }
-    .header-search-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #555;
-      font-size: 14px;
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-left: 16px;
-    }
-    .trending-btn {
-      font-size: 13px;
-      color: #aaa;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .trending-btn:hover { color: #fff; }
+  /* NAV */
+  nav {
+    flex-shrink: 0;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1440px; margin: 0 auto;
+    padding: 14px 32px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: bold; }
+  .logo-flag {
+    width: 28px; height: 28px;
+    background: linear-gradient(180deg, #ff9933 33%, #fff 33% 66%, #138808 66%);
+    border-radius: 6px;
+    position: relative;
+  }
+  .logo-flag::after {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    border: 1.5px solid #0e3299; border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .beta-badge {
+    background: rgba(6, 185, 111, 0.15); color: var(--positive);
+    padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: bold;
+    border: 1px solid rgba(6, 185, 111, 0.3);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .nav-search { flex: 1; max-width: 480px; margin-left: auto; position: relative; }
+  .nav-search input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 14px 10px 38px; border-radius: 10px;
+    font-size: 13px; font-family: inherit; outline: none;
+  }
+  .nav-search input:focus { border-color: var(--accent); }
+  .nav-search::before {
+    content: "🔍"; position: absolute; left: 13px; top: 50%;
+    transform: translateY(-50%); font-size: 13px; opacity: 0.5;
+  }
+  .nav-trending {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--positive); font-size: 14px; font-weight: bold;
+    padding: 8px 14px; border-radius: 8px;
+  }
+  .nav-trending:hover { background: var(--surface); }
+  .nav-profile {
+    width: 36px; height: 36px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
 
-    /* HERO */
-    .hero {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      padding: 60px 48px;
-      max-width: 1200px;
-      margin: 0 auto;
-      align-items: center;
-    }
-    .hero-left {}
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #1a2a1a;
-      border: 1px solid #2d7a47;
-      color: #4ade80;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      margin-bottom: 24px;
-    }
-    .hero-badge-dot {
-      width: 6px;
-      height: 6px;
-      background: #4ade80;
-      border-radius: 50%;
-    }
-    .hero h1 {
-      font-size: 48px;
-      font-weight: 700;
-      line-height: 1.15;
-      color: #fff;
-      margin-bottom: 16px;
-    }
-    .hero h1 span { color: #e94560; }
-    .hero-sub {
-      font-size: 16px;
-      color: #888;
-      line-height: 1.6;
-      margin-bottom: 32px;
-    }
-    .hero-search {
-      position: relative;
-      margin-bottom: 20px;
-    }
-    .hero-search input {
-      width: 100%;
-      background: #1a1a1a;
-      border: 1.5px solid #2a2a2a;
-      border-radius: 12px;
-      padding: 14px 48px 14px 48px;
-      font-size: 15px;
-      color: #f0f0f0;
-      outline: none;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
-    .hero-search input:focus { border-color: #e94560; }
-    .hero-search-icon {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #555;
-      font-size: 18px;
-    }
-    .hero-search-filter {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #555;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .popular-searches {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .popular-label { font-size: 12px; color: #555; }
-    .popular-tag {
-      font-size: 12px;
-      color: #888;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      padding: 4px 10px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .popular-tag:hover { color: #fff; border-color: #e94560; }
+  /* MAIN */
+  main {
+    flex: 1; max-width: 1440px; width: 100%; margin: 0 auto;
+    padding: 40px 32px 24px; display: flex; flex-direction: column; gap: 32px;
+    min-height: 0;
+  }
 
-    /* HERO RIGHT — Reddit cards */
-    .hero-right {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .reddit-card {
-      background: #161616;
-      border: 1px solid #222;
-      border-radius: 12px;
-      padding: 16px;
-      transition: border-color 0.15s;
-      cursor: pointer;
-    }
-    .reddit-card:hover { border-color: #e94560; }
-    .reddit-card-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .reddit-avatar {
-      width: 24px;
-      height: 24px;
-      background: #e94560;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .reddit-sub { font-size: 12px; color: #888; }
-    .reddit-time { font-size: 11px; color: #555; margin-left: auto; }
-    .reddit-title { font-size: 14px; color: #f0f0f0; line-height: 1.4; margin-bottom: 10px; font-weight: 500; }
-    .reddit-footer { display: flex; align-items: center; gap: 12px; }
-    .reddit-stat { font-size: 11px; color: #555; display: flex; align-items: center; gap: 4px; }
+  /* HERO */
+  .hero-grid {
+    display: grid; grid-template-columns: 1.1fr 1fr;
+    gap: 56px; align-items: center; flex: 1; min-height: 0;
+  }
+  .hero h1 {
+    font-size: 64px; line-height: 1.02; letter-spacing: -2.5px;
+    font-weight: bold; margin-bottom: 22px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 18px; color: var(--text-dim);
+    margin-bottom: 32px; max-width: 460px; line-height: 1.5;
+  }
+  .hero-search { position: relative; margin-bottom: 18px; max-width: 580px; }
+  .hero-search input {
+    width: 100%; background: var(--surface); border: 1px solid #2a2a2a;
+    color: var(--text); padding: 17px 60px 17px 56px; border-radius: 14px;
+    font-size: 15px; font-family: inherit; outline: none;
+  }
+  .hero-search input:focus { border-color: var(--accent); }
+  .hero-search::before {
+    content: "🔍"; position: absolute; left: 20px; top: 50%;
+    transform: translateY(-50%); font-size: 17px; opacity: 0.5;
+  }
+  .hero-search-filter {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: 40px; height: 40px; background: var(--surface-2); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;
+  }
 
-    /* STATS BAR */
-    .stats-bar {
-      background: #111;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-      padding: 24px 48px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .stat-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-    .stat-icon.green { background: #1a2a1a; }
-    .stat-icon.orange { background: #2a1a0a; }
-    .stat-icon.blue { background: #0a1a2a; }
-    .stat-icon.purple { background: #1a0a2a; }
-    .stat-number { font-size: 22px; font-weight: 700; color: #fff; }
-    .stat-label { font-size: 12px; color: #555; margin-top: 2px; }
+  /* HERO CATEGORIES (under search bar) */
+  .hero-cats { display: flex; gap: 8px; flex-wrap: wrap; max-width: 580px; }
+  .hero-cat {
+    padding: 9px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: bold; transition: all 0.15s;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .hero-cat.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .hero-cat:not(.active):hover { border-color: var(--text-muted); color: var(--text); }
+  .hero-cat.coming { color: var(--text-muted); cursor: default; }
+  .hero-cat.coming:hover { border-color: var(--border); color: var(--text-muted); }
+  .hero-cat-soon {
+    background: rgba(255,255,255,0.05); color: var(--text-muted);
+    font-size: 9px; padding: 2px 7px; border-radius: 999px; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
 
-    /* TRENDING */
-    .section {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 48px;
-    }
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .section-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-sub { font-size: 13px; color: #555; margin-bottom: 20px; }
-    .view-all { font-size: 13px; color: #e94560; cursor: pointer; }
-    .view-all:hover { text-decoration: underline; }
+  /* HERO REDDIT CARDS — with colored glows */
+  .hero-cards {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; align-content: center; padding: 8px;
+  }
+  .reddit-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 16px; transition: all 0.2s; position: relative;
+  }
+  .reddit-card:nth-child(1) {
+    transform: translateY(-20px);
+    border-color: rgba(6, 185, 111, 0.4);
+    box-shadow: 0 0 30px -8px rgba(6, 185, 111, 0.3);
+  }
+  .reddit-card:nth-child(2) {
+    transform: translateY(28px);
+    border-color: rgba(255, 107, 53, 0.4);
+    box-shadow: 0 0 30px -8px rgba(255, 107, 53, 0.3);
+  }
+  .reddit-card:nth-child(3) {
+    transform: translateY(0);
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 30px -8px rgba(168, 85, 247, 0.25);
+  }
+  .reddit-card:nth-child(4) {
+    transform: translateY(36px);
+    border-color: rgba(236, 72, 153, 0.4);
+    box-shadow: 0 0 30px -8px rgba(236, 72, 153, 0.3);
+  }
+  .reddit-card-head {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .reddit-icon {
+    width: 22px; height: 22px; background: #ff4500; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 11px; font-weight: bold;
+  }
+  .reddit-sub { font-weight: bold; color: var(--text); font-size: 12px; }
+  .reddit-card-body {
+    font-size: 14px; color: var(--text); margin-bottom: 12px; line-height: 1.4;
+    font-weight: 600;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .reddit-card-foot {
+    display: flex; gap: 14px; font-size: 12px; color: var(--text-muted);
+    align-items: center;
+  }
+  .reddit-card-foot .upvotes { color: var(--positive); display: flex; align-items: center; gap: 4px; }
+  .reddit-card-foot .product { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .sentiment-tag {
+    font-weight: bold; padding: 2px 7px; border-radius: 4px; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .sentiment-tag.positive { background: rgba(6, 185, 111, 0.15); color: var(--positive); }
+  .sentiment-tag.neutral { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+  .sentiment-tag.negative { background: rgba(255, 107, 53, 0.15); color: var(--accent); }
+  .hero-cards-empty {
+    grid-column: 1/-1; background: var(--surface);
+    border: 1px dashed #2a2a2a; border-radius: 14px;
+    padding: 40px 24px; text-align: center; color: var(--text-dim); font-size: 13px;
+  }
+  .hero-cards-empty strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 14px; }
 
-    .trending-scroll {
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      scrollbar-width: none;
-    }
-    .trending-scroll::-webkit-scrollbar { display: none; }
+  /* TRUST STRIP */
+  .trust-strip {
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 24px;
+    font-size: 13px; color: var(--text-dim); flex-shrink: 0;
+  }
+  .trust-strip strong { color: var(--text); font-weight: bold; }
+  .trust-dot { color: var(--text-muted); }
 
-    .product-card-h {
-      background: #161616;
-      border: 1px solid #222;
-      border-radius: 14px;
-      padding: 20px;
-      min-width: 220px;
-      max-width: 220px;
-      cursor: pointer;
-      transition: border-color 0.15s, transform 0.15s;
-      position: relative;
-    }
-    .product-card-h:hover {
-      border-color: #e94560;
-      transform: translateY(-2px);
-    }
-    .card-rank {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .card-rank.gold { background: #f0a500; color: #000; }
-    .card-rank.silver { background: #9aa0a6; color: #000; }
-    .card-rank.bronze { background: #cd7f32; color: #000; }
-    .card-rank.normal { background: #222; color: #888; }
-    .card-score {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background: #1a2a1a;
-      border: 1px solid #2d7a47;
-      color: #4ade80;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-    }
-    .card-img {
-      width: 80px;
-      height: 80px;
-      margin: 20px auto 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #1a1a1a;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .card-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .card-img-placeholder {
-      font-size: 28px;
-      font-weight: 700;
-      color: #e94560;
-    }
-    .card-name { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; line-height: 1.3; }
-    .card-category { font-size: 11px; color: #555; margin-bottom: 10px; }
-    .card-meta { font-size: 11px; color: #555; margin-bottom: 10px; }
-    .card-bar {
-      height: 4px;
-      background: #222;
-      border-radius: 2px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-    .card-bar-fill { height: 100%; background: linear-gradient(90deg, #06b96f, #4ade80); border-radius: 2px; }
-    .card-price {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .amazon-badge {
-      font-size: 10px;
-      background: #ff9900;
-      color: #000;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-weight: 700;
-    }
+  /* BROWSE BY CATEGORY */
+  .section-head { margin-bottom: 16px; }
+  .section-title { font-size: 22px; font-weight: bold; line-height: 1.1; margin-bottom: 4px; }
+  .section-sub { color: var(--text-dim); font-size: 13px; }
 
-    /* CATEGORIES */
-    .categories-grid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
-    }
-    .category-card {
-      background: #161616;
-      border: 1px solid #222;
-      border-radius: 12px;
-      padding: 20px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .category-card:hover { border-color: #e94560; }
-    .category-icon { font-size: 24px; margin-bottom: 8px; }
-    .category-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .category-count { font-size: 11px; color: #555; }
+  .cat-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; flex-shrink: 0; }
+  .cat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; transition: all 0.2s;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .cat-card.live { cursor: pointer; }
+  .cat-card.live:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .cat-card.coming { opacity: 0.5; }
+  .cat-icon {
+    width: 44px; height: 44px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .cat-icon.skincare { background: rgba(6, 185, 111, 0.12); color: var(--positive); }
+  .cat-icon.haircare { background: rgba(168, 85, 247, 0.12); color: var(--purple); }
+  .cat-icon.makeup { background: rgba(236, 72, 153, 0.12); color: var(--pink); }
+  .cat-icon.tech { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+  .cat-icon.electronics { background: rgba(255, 107, 53, 0.12); color: var(--accent); }
+  .cat-icon.more { background: var(--surface-2); color: var(--text-muted); }
+  .cat-name { font-size: 15px; font-weight: bold; line-height: 1.2; margin-bottom: 3px; }
+  .cat-meta { font-size: 12px; color: var(--text-dim); }
 
-    /* DETAIL PAGE */
-    .detail-page { display: none; }
-    .detail-page.active { display: block; }
-    .list-page { display: block; }
-    .list-page.hidden { display: none; }
-
-    .detail-container {
-      max-width: 900px;
-      margin: 32px auto;
-      padding: 0 24px;
-    }
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #e94560;
-      cursor: pointer;
-      margin-bottom: 24px;
-      padding: 8px 0;
-      font-weight: 500;
-    }
-    .back-btn:hover { opacity: 0.7; }
-    .detail-header {
-      background: #161616;
-      border: 1px solid #222;
-      border-radius: 14px;
-      padding: 28px;
-      margin-bottom: 16px;
-    }
-    .detail-title { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-    .detail-brand { font-size: 14px; color: #555; margin-bottom: 16px; }
-    .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-    .tag {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 500;
-    }
-    .tag-category { background: #1a2a1a; color: #4ade80; border: 1px solid #2d7a47; }
-    .tag-skin { background: #0a1a2a; color: #60a5fa; border: 1px solid #1e40af; }
-    .tag-price { background: #2a1a0a; color: #fb923c; border: 1px solid #9a3412; }
-
-    .sentiment-section h3 {
-      font-size: 12px;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 14px;
-    }
-    .sentiment-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .sentiment-row-label { font-size: 13px; color: #888; min-width: 70px; }
-    .sentiment-track {
-      flex: 1;
-      height: 8px;
-      background: #222;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .sentiment-fill-pos { height: 100%; background: #06b96f; border-radius: 4px; transition: width 0.6s; }
-    .sentiment-fill-neu { height: 100%; background: #f59e0b; border-radius: 4px; transition: width 0.6s; }
-    .sentiment-fill-neg { height: 100%; background: #e94560; border-radius: 4px; transition: width 0.6s; }
-    .sentiment-row-count { font-size: 13px; color: #555; min-width: 30px; text-align: right; }
-
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-    .detail-card {
-      background: #161616;
-      border: 1px solid #222;
-      border-radius: 14px;
-      padding: 20px;
-    }
-    .detail-card h3 {
-      font-size: 12px;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 14px;
-    }
-    .pro-item, .con-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      font-size: 14px;
-      margin-bottom: 10px;
-      color: #ccc;
-    }
-    .pro-icon { color: #06b96f; font-weight: 700; }
-    .con-icon { color: #e94560; font-weight: 700; }
-
-    .comments-section {
-      background: #161616;
-      border: 1px solid #222;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .comments-section h3 {
-      font-size: 12px;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 16px;
-    }
-    .comment-item {
-      border-left: 3px solid #222;
-      padding: 10px 14px;
-      margin-bottom: 12px;
-      border-radius: 0 8px 8px 0;
-      background: #111;
-    }
-    .comment-item.positive { border-left-color: #06b96f; }
-    .comment-item.negative { border-left-color: #e94560; }
-    .comment-item.neutral { border-left-color: #f59e0b; }
-    .comment-text { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 6px; }
-    .comment-meta { font-size: 11px; color: #555; }
-
-    footer {
-      text-align: center;
-      padding: 32px 20px;
-      font-size: 12px;
-      color: #333;
-      border-top: 1px solid #1a1a1a;
-      margin-top: 40px;
-    }
-    footer a { color: #e94560; text-decoration: none; }
-
-    @media (max-width: 768px) {
-      .hero { grid-template-columns: 1fr; padding: 32px 20px; }
-      .hero-right { display: none; }
-      .hero h1 { font-size: 32px; }
-      .stats-bar { grid-template-columns: repeat(2, 1fr); padding: 20px; }
-      .section { padding: 24px 20px; }
-      .categories-grid { grid-template-columns: repeat(3, 1fr); }
-      nav { display: none; }
-      .detail-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+  @media (max-height: 800px) {
+    main { padding: 24px 32px 18px; gap: 22px; }
+    .hero h1 { font-size: 52px; }
+    .hero-sub { margin-bottom: 24px; font-size: 16px; }
+    .cat-card { padding: 14px; }
+    .cat-icon { width: 38px; height: 38px; font-size: 18px; }
+    .cat-name { font-size: 14px; }
+  }
+  @media (max-width: 1100px) {
+    .hero h1 { font-size: 44px; }
+    .cat-row { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="logo" onclick="showList()">
-    <span class="logo-flag">🇮🇳</span>
-    IndiaRecs
-    <span class="logo-beta">Beta</span>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <div class="logo-flag"></div>
+      IndiaRecs
+      <span class="beta-badge">Beta</span>
+    </a>
+    <div class="nav-search">
+      <input id="navSearch" type="text" placeholder="Search products, brands, categories..." />
+    </div>
+    <a href="#" class="nav-trending">↗ Trending</a>
+    <button class="nav-profile">👤</button>
   </div>
-  <nav>
-    <div class="nav-item active">Skincare ▾</div>
-    <div class="nav-item">Tech ▾</div>
-    <div class="nav-item">Electronics ▾</div>
-    <div class="nav-item">Fashion ▾</div>
-    <div class="nav-item">More ▾</div>
-  </nav>
-  <div class="header-search">
-    <span class="header-search-icon">🔍</span>
-    <input type="text" placeholder="Search products, brands, categories..." oninput="heroSearch(this.value)"/>
-  </div>
-  <div class="header-right">
-    <div class="trending-btn">↗ Trending</div>
-  </div>
-</header>
+</nav>
 
-<!-- LIST PAGE -->
-<div class="list-page" id="list-page">
+<main>
 
-  <!-- HERO -->
-  <div style="background:#111; border-bottom:1px solid #1a1a1a;">
-    <div class="hero">
-      <div class="hero-left">
-        <div class="hero-badge">
-          <div class="hero-badge-dot"></div>
-          Influencer-free opinions from Reddit
-        </div>
-        <h1>Authentic product reviews<br/>from <span>Reddit communities.</span></h1>
-        <p class="hero-sub">Real people. Real experiences.<br/>Zero influencer bias.</p>
-        <div class="hero-search">
-          <span class="hero-search-icon">🔍</span>
-          <input type="text" id="main-search" placeholder="Search skincare, tech, shoes, supplements..." oninput="applyFilters()"/>
-          <span class="hero-search-filter">⚙</span>
-        </div>
-        <div class="popular-searches">
-          <span class="popular-label">Popular searches:</span>
-          <span class="popular-tag" onclick="setSearch('Minimalist Niacinamide')">Minimalist Niacinamide</span>
-          <span class="popular-tag" onclick="setSearch('Cetaphil')">Cetaphil Cleanser</span>
-          <span class="popular-tag" onclick="setSearch('Sunscreen')">Best Sunscreen</span>
-          <span class="popular-tag" onclick="setSearch('CeraVe')">CeraVe</span>
-        </div>
+  <section class="hero-grid">
+    <div>
+      <h1>Authentic product reviews from <span>Reddit communities.</span></h1>
+      <p class="hero-sub">Real people. Real experiences.<br/>Zero influencer bias.</p>
+      <div class="hero-search">
+        <input id="heroSearch" type="text" placeholder="Search skincare, brands, ingredients..." />
+        <div class="hero-search-filter">⚙</div>
       </div>
-      <div class="hero-right" id="reddit-cards">
-        <div class="reddit-card">
-          <div class="reddit-card-header">
-            <div class="reddit-avatar">r/</div>
-            <span class="reddit-sub">r/IndianSkincareAddicts</span>
-            <span class="reddit-time">6h</span>
-          </div>
-          <div class="reddit-title">Minimalist Niacinamide 10% is a game changer for oily skin!</div>
-          <div class="reddit-footer">
-            <div class="reddit-stat">▲ 124 upvotes</div>
-            <div class="reddit-stat">💬 23</div>
-          </div>
-        </div>
-        <div class="reddit-card">
-          <div class="reddit-card-header">
-            <div class="reddit-avatar" style="background:#0f3460">r/</div>
-            <span class="reddit-sub">r/IndianSkincareAddicts</span>
-            <span class="reddit-time">12h</span>
-          </div>
-          <div class="reddit-title">Finally found a cleanser that doesn't break me out 🙌</div>
-          <div class="reddit-footer">
-            <div class="reddit-stat">▲ 56 upvotes</div>
-            <div class="reddit-stat">💬 12</div>
-          </div>
-        </div>
-        <div class="reddit-card">
-          <div class="reddit-card-header">
-            <div class="reddit-avatar" style="background:#2d7a47">r/</div>
-            <span class="reddit-sub">r/IndianBeautyDeals</span>
-            <span class="reddit-time">8h</span>
-          </div>
-          <div class="reddit-title">Best sunscreen under ₹500 that actually works in Indian weather?</div>
-          <div class="reddit-footer">
-            <div class="reddit-stat">▲ 89 upvotes</div>
-            <div class="reddit-stat">💬 47</div>
-          </div>
-        </div>
+      <div class="hero-cats" id="heroCats"></div>
+    </div>
+    <div class="hero-cards" id="heroCards">
+      <div class="hero-cards-empty">
+        <strong>Loading recent reviews...</strong>
+        Live mentions from Reddit appear here.
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- STATS BAR -->
-  <div style="background:#111; border-bottom:1px solid #1a1a1a;">
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-icon green">📦</div>
-        <div>
-          <div class="stat-number" id="stat-products">—</div>
-          <div class="stat-label">Products Analyzed</div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon orange">💬</div>
-        <div>
-          <div class="stat-number" id="stat-mentions">—</div>
-          <div class="stat-label">Reddit Mentions</div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon blue">👥</div>
-        <div>
-          <div class="stat-number">4</div>
-          <div class="stat-label">Active Communities</div>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon purple">✓</div>
-        <div>
-          <div class="stat-number">Daily</div>
-          <div class="stat-label">Fresh data, always</div>
-        </div>
-      </div>
+  <section class="trust-strip">
+    <span>💬 <strong id="statMentions">—</strong> Reddit mention<span id="statMentionsPlural">s</span> analyzed</span>
+    <span class="trust-dot">·</span>
+    <span>🔄 Updated weekly</span>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div class="section-title">Browse by Category</div>
+      <div class="section-sub">Explore top products in your favorite categories</div>
     </div>
-  </div>
+    <div class="cat-row" id="catGrid"></div>
+  </section>
 
-  <!-- TRENDING NOW -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">🔥 Trending Now</div>
-      <div class="view-all">View all ›</div>
-    </div>
-    <div class="section-sub">Most discussed products this month</div>
-    <div class="trending-scroll" id="trending-scroll"></div>
-  </div>
+</main>
 
-  <!-- BROWSE BY CATEGORY -->
-  <div class="section" style="padding-top:0">
-    <div class="section-title" style="margin-bottom:8px">Browse by Category</div>
-    <div class="section-sub">Explore top products in your favorite categories</div>
-    <div class="categories-grid">
-      <div class="category-card" onclick="filterCategory('skincare')">
-        <div class="category-icon">🧴</div>
-        <div class="category-name">Skincare</div>
-        <div class="category-count" id="cat-skincare">— products</div>
-      </div>
-      <div class="category-card">
-        <div class="category-icon">💇</div>
-        <div class="category-name">Haircare</div>
-        <div class="category-count">Coming soon</div>
-      </div>
-      <div class="category-card">
-        <div class="category-icon">💄</div>
-        <div class="category-name">Makeup</div>
-        <div class="category-count">Coming soon</div>
-      </div>
-      <div class="category-card">
-        <div class="category-icon">💻</div>
-        <div class="category-name">Tech</div>
-        <div class="category-count">Coming soon</div>
-      </div>
-      <div class="category-card">
-        <div class="category-icon">🎧</div>
-        <div class="category-name">Electronics</div>
-        <div class="category-count">Coming soon</div>
-      </div>
-      <div class="category-card">
-        <div class="category-icon">···</div>
-        <div class="category-name">More</div>
-        <div class="category-count">Coming soon</div>
-      </div>
-    </div>
-  </div>
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc';
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-</div>
+  async function loadAll() {
+    const [productsRes, mentionsRes] = await Promise.all([
+      supabase.from('products').select('*'),
+      supabase.from('mentions').select('*').order('created_at', { ascending: false }).limit(4)
+    ]);
+    const products = productsRes.data || [];
+    const mentions = mentionsRes.data || [];
+    renderHeroCats(products);
+    renderTrustStrip(products);
+    renderHeroCards(mentions);
+    renderCategories(products);
+  }
 
-<!-- DETAIL PAGE -->
-<div class="detail-page" id="detail-page">
-  <div class="detail-container">
-    <div class="back-btn" onclick="showList()">← Back to all products</div>
-    <div id="detail-content"></div>
-  </div>
-</div>
+  function renderHeroCats(products) {
+    const liveCats = new Set();
+    products.forEach(p => { if (p.category) liveCats.add(p.category.toLowerCase()); });
+    const cats = [
+      { name: 'Skincare', live: liveCats.has('skincare') },
+      { name: 'Tech', live: liveCats.has('tech') },
+      { name: 'Fashion', live: liveCats.has('fashion') },
+      { name: 'Fragrance', live: liveCats.has('fragrance') },
+      { name: 'More', live: false }
+    ];
+    document.getElementById('heroCats').innerHTML = cats.map((c, i) => {
+      if (i === 0 && c.live) return `<button class="hero-cat active">${c.name}</button>`;
+      if (c.live) return `<button class="hero-cat">${c.name}</button>`;
+      return `<button class="hero-cat coming">${c.name}<span class="hero-cat-soon">Soon</span></button>`;
+    }).join('');
+  }
 
-<footer>
-  Built with data from
-  <a href="https://reddit.com/r/IndianSkincareAddicts" target="_blank">r/IndianSkincareAddicts</a>,
-  <a href="https://reddit.com/r/SkincareAddiction" target="_blank">r/SkincareAddiction</a> and
-  <a href="https://reddit.com/r/indianbeautyhauls" target="_blank">r/indianbeautyhauls</a>
-  <br/><br/>
-  IndiaRecs — community-powered product recommendations for India
-</footer>
+  function renderTrustStrip(products) {
+    const total = products.reduce((s, p) => s + (p.mention_count || 0), 0);
+    document.getElementById('statMentions').textContent = total;
+    document.getElementById('statMentionsPlural').textContent = total === 1 ? '' : 's';
+  }
 
-<script>
-  const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co'
-  const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc'
-
-  let allProducts = []
-
-  async function loadProducts() {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/products?select=*&order=score.desc`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-      })
-      allProducts = await res.json()
-      renderStats()
-      renderTrending()
-      renderCategoryCount()
-    } catch(e) {
-      console.error(e)
+  function renderHeroCards(mentions) {
+    const el = document.getElementById('heroCards');
+    if (!mentions.length) {
+      el.innerHTML = `<div class="hero-cards-empty"><strong>Live mentions appearing soon</strong>Our scraper runs weekly. Recent Reddit reviews appear here.</div>`;
+      return;
     }
-  }
-
-  function renderStats() {
-    const totalMentions = allProducts.reduce((sum, p) => sum + (p.mention_count || 0), 0)
-    document.getElementById('stat-products').textContent = allProducts.length
-    document.getElementById('stat-mentions').textContent = totalMentions.toLocaleString('en-IN')
-    document.getElementById('cat-skincare').textContent = allProducts.length + ' products'
-  }
-
-  function getRankClass(i) {
-    if (i === 0) return 'gold'
-    if (i === 1) return 'silver'
-    if (i === 2) return 'bronze'
-    return 'normal'
-  }
-
-  function getInitial(name) {
-    return name ? name.charAt(0).toUpperCase() : '?'
-  }
-
-  function renderTrending() {
-    const container = document.getElementById('trending-scroll')
-    container.innerHTML = allProducts.slice(0, 8).map((p, i) => {
-      const total = p.mention_count || 1
-      const posPct = Math.round((p.positive_count / total) * 100)
-      return `
-        <div class="product-card-h" onclick="showDetail(${p.id})">
-          <div class="card-rank ${getRankClass(i)}">${i + 1}</div>
-          <div class="card-score">${posPct}%<br/><span style="font-size:9px;font-weight:400">Holy Grail</span></div>
-          <div class="card-img">
-            <div class="card-img-placeholder">${getInitial(p.brand || p.name)}</div>
-          </div>
-          <div class="card-name">${p.name}</div>
-          <div class="card-category">${p.product_category || 'Skincare'}</div>
-          <div class="card-meta">${p.mention_count} mentions · ${posPct}% positive</div>
-          <div class="card-bar">
-            <div class="card-bar-fill" style="width:${posPct}%"></div>
-          </div>
-          <div class="card-price">
-            ${p.price_inr ? `₹${p.price_inr}` : ''}
-            ${p.price_inr ? `<span class="amazon-badge">a</span>` : ''}
-          </div>
-        </div>`
-    }).join('')
-  }
-
-  function renderCategoryCount() {
-    const skincare = allProducts.filter(p => p.category === 'skincare').length
-    document.getElementById('cat-skincare').textContent = skincare + ' products'
-  }
-
-  function applyFilters() {
-    const search = document.getElementById('main-search').value.toLowerCase()
-    if (!search) { renderTrending(); return; }
-    const filtered = allProducts.filter(p =>
-      p.name.toLowerCase().includes(search) ||
-      (p.brand && p.brand.toLowerCase().includes(search))
-    )
-    const container = document.getElementById('trending-scroll')
-    if (!filtered.length) {
-      container.innerHTML = `<div style="color:#555;font-size:14px;padding:20px">No products found for "${search}"</div>`
-      return
-    }
-    container.innerHTML = filtered.slice(0, 8).map((p, i) => {
-      const total = p.mention_count || 1
-      const posPct = Math.round((p.positive_count / total) * 100)
-      return `
-        <div class="product-card-h" onclick="showDetail(${p.id})">
-          <div class="card-rank ${getRankClass(i)}">${i + 1}</div>
-          <div class="card-score">${posPct}%<br/><span style="font-size:9px;font-weight:400">Holy Grail</span></div>
-          <div class="card-img">
-            <div class="card-img-placeholder">${getInitial(p.brand || p.name)}</div>
-          </div>
-          <div class="card-name">${p.name}</div>
-          <div class="card-category">${p.product_category || 'Skincare'}</div>
-          <div class="card-meta">${p.mention_count} mentions · ${posPct}% positive</div>
-          <div class="card-bar">
-            <div class="card-bar-fill" style="width:${posPct}%"></div>
-          </div>
-          <div class="card-price">
-            ${p.price_inr ? `₹${p.price_inr}` : ''}
-            ${p.price_inr ? `<span class="amazon-badge">a</span>` : ''}
-          </div>
-        </div>`
-    }).join('')
-  }
-
-  function heroSearch(val) {
-    document.getElementById('main-search').value = val
-    applyFilters()
-  }
-
-  function setSearch(term) {
-    document.getElementById('main-search').value = term
-    applyFilters()
-  }
-
-  function filterCategory(cat) {
-    const filtered = allProducts.filter(p => p.category === cat)
-    const container = document.getElementById('trending-scroll')
-    container.innerHTML = filtered.slice(0, 8).map((p, i) => {
-      const total = p.mention_count || 1
-      const posPct = Math.round((p.positive_count / total) * 100)
-      return `
-        <div class="product-card-h" onclick="showDetail(${p.id})">
-          <div class="card-rank ${getRankClass(i)}">${i + 1}</div>
-          <div class="card-score">${posPct}%<br/><span style="font-size:9px;font-weight:400">Holy Grail</span></div>
-          <div class="card-img">
-            <div class="card-img-placeholder">${getInitial(p.brand || p.name)}</div>
-          </div>
-          <div class="card-name">${p.name}</div>
-          <div class="card-category">${p.product_category || 'Skincare'}</div>
-          <div class="card-meta">${p.mention_count} mentions · ${posPct}% positive</div>
-          <div class="card-bar">
-            <div class="card-bar-fill" style="width:${posPct}%"></div>
-          </div>
-          <div class="card-price">
-            ${p.price_inr ? `₹${p.price_inr}` : ''}
-            ${p.price_inr ? `<span class="amazon-badge">a</span>` : ''}
-          </div>
-        </div>`
-    }).join('')
-  }
-
-  async function showDetail(productId) {
-    const product = allProducts.find(p => p.id === productId)
-    if (!product) return
-    document.getElementById('list-page').classList.add('hidden')
-    document.getElementById('detail-page').classList.add('active')
-    window.scrollTo(0, 0)
-    const total = product.mention_count || 1
-    const neutral = total - product.positive_count - product.negative_count
-    const posPct = Math.round((product.positive_count / total) * 100)
-    const neuPct = Math.round((neutral / total) * 100)
-    const negPct = 100 - posPct - neuPct
-    document.getElementById('detail-content').innerHTML = `
-      <div class="detail-header">
-        <div class="detail-title">${product.name}</div>
-        <div class="detail-brand">${product.brand || ''}</div>
-        <div class="detail-tags">
-          ${product.product_category ? `<span class="tag tag-category">${product.product_category}</span>` : ''}
-          ${product.skin_type && product.skin_type !== 'all' ? `<span class="tag tag-skin">${product.skin_type} skin</span>` : ''}
-          ${product.price_inr ? `<span class="tag tag-price">₹${product.price_inr}</span>` : ''}
-        </div>
-        <div class="sentiment-section">
-          <h3>Sentiment breakdown — ${product.mention_count} Reddit mentions</h3>
-          <div class="sentiment-row">
-            <div class="sentiment-row-label">👍 Positive</div>
-            <div class="sentiment-track"><div class="sentiment-fill-pos" style="width:${posPct}%"></div></div>
-            <div class="sentiment-row-count">${product.positive_count}</div>
-          </div>
-          <div class="sentiment-row">
-            <div class="sentiment-row-label">😐 Neutral</div>
-            <div class="sentiment-track"><div class="sentiment-fill-neu" style="width:${neuPct}%"></div></div>
-            <div class="sentiment-row-count">${neutral}</div>
-          </div>
-          <div class="sentiment-row">
-            <div class="sentiment-row-label">👎 Negative</div>
-            <div class="sentiment-track"><div class="sentiment-fill-neg" style="width:${negPct}%"></div></div>
-            <div class="sentiment-row-count">${product.negative_count}</div>
-          </div>
-        </div>
-      </div>
-      <div class="detail-grid">
-        <div class="detail-card">
-          <h3>👍 What people love</h3>
-          <div class="pro-item"><span class="pro-icon">+</span> Frequently recommended by community</div>
-          <div class="pro-item"><span class="pro-icon">+</span> ${posPct}% positive sentiment</div>
-          <div class="pro-item"><span class="pro-icon">+</span> ${product.mention_count} total mentions</div>
-        </div>
-        <div class="detail-card">
-          <h3>👎 Watch out for</h3>
-          ${product.negative_count > 0
-            ? `<div class="con-item"><span class="con-icon">−</span> ${product.negative_count} negative mentions</div>
-               <div class="con-item"><span class="con-icon">−</span> May not work for everyone</div>`
-            : `<div class="pro-item"><span class="pro-icon">+</span> No major complaints found</div>`}
-        </div>
-      </div>
-      <div class="comments-section">
-        <h3>Reddit mentions</h3>
-        <div id="comments-list">Loading...</div>
-      </div>`
-    loadComments(product.name)
-  }
-
-  async function loadComments(productName) {
-    try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/mentions?product_name=eq.${encodeURIComponent(productName)}&select=*&limit=10`,
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }}
-      )
-      const comments = await res.json()
-      const container = document.getElementById('comments-list')
-      if (!comments.length) {
-        container.innerHTML = `<div style="color:#555;font-size:14px">No comments yet — they will appear once Reddit data is connected.</div>`
-        return
+    const cards = mentions.slice(0, 4);
+    while (cards.length < 4 && cards.length > 0) cards.push(null);
+    el.innerHTML = cards.map(m => {
+      if (!m) {
+        return `<div class="reddit-card" style="opacity:0.4; border-style:dashed; box-shadow:none;">
+          <div class="reddit-card-head"><div class="reddit-icon">r/</div><span class="reddit-sub">scanning...</span></div>
+          <div class="reddit-card-body" style="color: var(--text-muted); font-weight: normal;">More reviews appear as we scan Reddit weekly.</div>
+          <div class="reddit-card-foot"><span>Coming soon</span></div></div>`;
       }
-      container.innerHTML = comments.map(c => `
-        <div class="comment-item ${c.sentiment}">
-          <div class="comment-text">${c.comment_text}</div>
-          <div class="comment-meta">r/${c.subreddit} · ${c.sentiment}</div>
-        </div>`).join('')
-    } catch(e) {
-      document.getElementById('comments-list').innerHTML = `<div style="color:#555;font-size:14px">Could not load comments.</div>`
-    }
+      const time = timeAgo(m.created_at);
+      const text = (m.comment_text || '').slice(0, 100) + (m.comment_text && m.comment_text.length > 100 ? '...' : '');
+      const sent = (m.sentiment || 'neutral').toLowerCase();
+      return `<div class="reddit-card">
+        <div class="reddit-card-head">
+          <div class="reddit-icon">r/</div>
+          <span class="reddit-sub">r/${escapeHtml(m.subreddit || 'reddit')}</span>
+          <span>· ${time}</span>
+        </div>
+        <div class="reddit-card-body">${escapeHtml(text)}</div>
+        <div class="reddit-card-foot">
+          <span class="sentiment-tag ${sent}">${sent}</span>
+          <span class="product">📦 ${escapeHtml((m.product_name || '').slice(0, 20))}</span>
+        </div>
+      </div>`;
+    }).join('');
   }
 
-  function showList() {
-    document.getElementById('list-page').classList.remove('hidden')
-    document.getElementById('detail-page').classList.remove('active')
-    window.scrollTo(0, 0)
+  function renderCategories(products) {
+    const liveCats = new Set();
+    products.forEach(p => { if (p.category) liveCats.add(p.category.toLowerCase()); });
+    const counts = {};
+    products.forEach(p => {
+      const c = (p.category || '').toLowerCase();
+      counts[c] = (counts[c] || 0) + 1;
+    });
+    const cats = [
+      { name: 'Skincare', icon: '🧴', cls: 'skincare' },
+      { name: 'Haircare', icon: '💇', cls: 'haircare' },
+      { name: 'Makeup', icon: '💄', cls: 'makeup' },
+      { name: 'Tech', icon: '💻', cls: 'tech' },
+      { name: 'Electronics', icon: '🎧', cls: 'electronics' },
+      { name: 'More', icon: '···', cls: 'more' }
+    ];
+    document.getElementById('catGrid').innerHTML = cats.map(c => {
+      const isLive = liveCats.has(c.name.toLowerCase());
+      const count = counts[c.name.toLowerCase()] || 0;
+      if (isLive) {
+        return `<div class="cat-card live">
+          <div class="cat-icon ${c.cls}">${c.icon}</div>
+          <div><div class="cat-name">${c.name}</div><div class="cat-meta">${count} product${count === 1 ? '' : 's'} · live</div></div>
+        </div>`;
+      }
+      return `<div class="cat-card coming">
+        <div class="cat-icon ${c.cls}">${c.icon}</div>
+        <div><div class="cat-name">${c.name}</div><div class="cat-meta">Coming soon</div></div>
+      </div>`;
+    }).join('');
   }
 
-  loadProducts()
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function timeAgo(d) {
+    if (!d) return 'recently';
+    const ms = Date.now() - new Date(d).getTime();
+    const m = Math.floor(ms/60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m/60);
+    if (h < 24) return h + 'h ago';
+    const dd = Math.floor(h/24);
+    if (dd < 7) return dd + 'd ago';
+    return Math.floor(dd/7) + 'w ago';
+  }
+
+  loadAll().catch(err => console.error('Load failed:', err));
 </script>
+
 </body>
 </html>
