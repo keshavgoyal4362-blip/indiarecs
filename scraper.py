@@ -1,9 +1,11 @@
 """
-IndiaRecs Scraper — Path G Edition
+IndiaRecs Scraper — Path G Edition (v2)
 - Tighter keyword + review-intent filter (fits in 20 RPD Gemini quota)
 - Username tracking for per-user voting (RedditRecs pattern)
 - 75/25 weighted score formula (RedditRecs formula)
 - Score recomputation runs at end of every scrape
+- Strips r/ prefix from subreddit names (fixes r/r/ display bug)
+- Improved capitalization in Gemini prompt + title-case fallback
 """
 
 import os
@@ -19,16 +21,14 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
-# Focused on highest-signal subreddits only
 SUBREDDITS = [
     "https://www.reddit.com/r/IndianSkincareAddicts/",
     "https://www.reddit.com/r/SkincareAddiction/",
 ]
 
-# Tighter limits to stay well under Gemini 20 RPD
-MAX_ITEMS = 30           # was 50
-MAX_POSTS_PER_SUB = 8    # was 10
-MAX_COMMENTS = 10        # was 15
+MAX_ITEMS = 30
+MAX_POSTS_PER_SUB = 8
+MAX_COMMENTS = 10
 
 GENERIC_TERMS = {
     "moisturizer", "moisturiser", "cleanser", "sunscreen",
@@ -54,7 +54,6 @@ def is_genuine_review(text):
         return False
     text_lower = text.lower()
 
-    # Must mention skincare
     skincare_keywords = [
         "moisturiz", "moisturis", "serum", "sunscreen", "spf",
         "cleanser", "face wash", "facewash", "toner", "exfoliat",
@@ -65,7 +64,6 @@ def is_genuine_review(text):
     if not any(k in text_lower for k in skincare_keywords):
         return False
 
-    # Must show review intent (someone sharing personal experience)
     review_signals = [
         "i use", "i used", "i've used", "ive used", "been using",
         "i tried", "i've tried", "ive tried", "my skin", "for me",
@@ -92,14 +90,16 @@ STRICT RULES:
 - DO NOT extract generic terms ("moisturizer", "sunscreen", "vitamin c") without a brand
 - DO NOT extract products mentioned only in questions
 - DO NOT extract products the user has NOT personally used
+- USE PROPER CAPITALIZATION: "The Ordinary Salicylic Acid 2%", "Joy pH 5.5 Cleanser", "Cetaphil Gentle Cleanser"
+- DO NOT return all-lowercase product names
 - Be conservative — when in doubt, leave it out
 
 Return JSON exactly:
 {{
   "products": [
     {{
-      "name": "Full product name with brand",
-      "brand": "Brand name only",
+      "name": "Full product name with brand (proper capitalization)",
+      "brand": "Brand name only (proper capitalization)",
       "category": "cleanser" or "moisturiser" or "sunscreen" or "serum" or "toner" or "other",
       "sentiment": "positive" or "negative" or "neutral"
     }}
@@ -115,7 +115,15 @@ Respond with ONLY valid JSON. No markdown, no other text."""
         clean = response.text.strip()
         clean = re.sub(r"^```(?:json)?", "", clean).strip()
         clean = re.sub(r"```$", "", clean).strip()
-        return json.loads(clean)
+        result = json.loads(clean)
+        # Safety net: title-case any product names that came back all-lowercase
+        if result and "products" in result:
+            for p in result["products"]:
+                if p.get("name") and p["name"] == p["name"].lower():
+                    p["name"] = p["name"].title()
+                if p.get("brand") and p["brand"] == p["brand"].lower():
+                    p["brand"] = p["brand"].title()
+        return result
     except Exception as e:
         print(f"  Gemini error: {e}")
         return None
@@ -193,16 +201,13 @@ def finalize_all_scores():
     Recompute every product's score using:
     - Per-user voting (1 user = 1 vote per product, based on their dominant sentiment)
     - 75/25 weighted formula: 0.75 * normalized_positive_users + 0.25 * positive_ratio
-    Called at the end of every scraper run.
     """
     print("\n  Recomputing scores (per-user voting + 75/25 weighted formula)...")
 
-    # Pull all mentions
     mentions_data = supabase.table("mentions").select(
         "product_name, username, sentiment"
     ).execute().data
 
-    # Group: product → user → sentiment counts
     by_product = {}
     for m in mentions_data:
         pn = m.get("product_name")
@@ -215,7 +220,6 @@ def finalize_all_scores():
         )
         by_product[pn][user][sentiment] = by_product[pn][user].get(sentiment, 0) + 1
 
-    # For each product: dedupe users by dominant sentiment, count unique voters
     product_stats = {}
     for pn, users in by_product.items():
         pos = neg = neu = 0
@@ -236,19 +240,16 @@ def finalize_all_scores():
             "total_mentions": total_mentions,
         }
 
-    # For 75/25 normalization, find max positive across all products
     max_positive = max(
         (s["positive_users"] for s in product_stats.values()),
         default=1
     ) or 1
 
-    # Update every product
     products = supabase.table("products").select("id, name").execute().data
     updated = 0
     for product in products:
         pn = product["name"]
         if pn not in product_stats:
-            # Product has no mentions — zero everything
             supabase.table("products").update({
                 "mention_count": 0,
                 "positive_count": 0,
@@ -282,7 +283,7 @@ def finalize_all_scores():
 
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper - Path G Edition")
+    print("IndiaRecs Scraper - Path G Edition v2")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
@@ -327,9 +328,11 @@ def main():
             skip_filter += 1
             continue
 
-        # Capture username (Reddit Scraper Lite uses 'username' field)
         username = item.get("username") or item.get("author") or "anonymous"
-        subreddit = item.get("communityName", "unknown")
+        subreddit = item.get("communityName", "unknown") or "unknown"
+        # Strip r/ prefix if Apify includes it (fixes r/r/ display bug)
+        if subreddit.startswith("r/"):
+            subreddit = subreddit[2:]
 
         result = extract_products_with_gemini(text)
         if not result or not result.get("products"):
