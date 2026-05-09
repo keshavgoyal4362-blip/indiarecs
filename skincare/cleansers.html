@@ -27,7 +27,7 @@
   a { color: inherit; text-decoration: none; }
   button { cursor: pointer; border: none; background: none; color: inherit; }
 
-  /* NAV — same as homepage */
+  /* NAV */
   nav {
     background: rgba(10, 10, 10, 0.92);
     backdrop-filter: blur(12px);
@@ -58,7 +58,7 @@
   .nav-mobile-btn { display: none; padding: 8px 12px; border-radius: 7px; font-size: 20px; color: var(--text); background: var(--surface); border: 1px solid var(--border); }
 
   /* MAIN */
-  main { max-width: 1480px; margin: 0 auto; padding: 24px 32px 48px; }
+  main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
 
   /* BREADCRUMBS */
   .breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); margin-bottom: 18px; flex-wrap: wrap; }
@@ -77,15 +77,15 @@
   .header-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--text); font-weight: bold; transition: all 0.15s; }
   .header-btn:hover { border-color: var(--accent); }
 
-  /* 3-COLUMN GRID */
+  /* 3-COLUMN GRID — middle narrower, right bigger */
   .compare-grid {
     display: grid;
-    grid-template-columns: 280px 1fr 440px;
+    grid-template-columns: 260px 460px 1fr;
     gap: 20px;
     align-items: start;
   }
 
-  /* CARDS — shared style */
+  /* CARDS */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
   .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
   .card-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
@@ -98,7 +98,6 @@
   .subreddit-name { flex: 1; font-size: 13px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .subreddit-count { font-size: 13px; font-weight: bold; color: var(--text); }
   .view-all-link { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--positive); font-weight: bold; }
-
   .sub-cat-list { display: flex; flex-direction: column; gap: 12px; }
   .sub-cat-item { display: flex; align-items: center; gap: 10px; padding: 4px 0; cursor: pointer; transition: opacity 0.15s; }
   .sub-cat-item:hover { opacity: 0.85; }
@@ -107,40 +106,38 @@
   .sub-cat-name { font-size: 13px; font-weight: bold; }
   .sub-cat-desc { font-size: 11px; color: var(--text-dim); }
 
-  /* MIDDLE — Product list */
+  /* MIDDLE */
   .compare-middle { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
   .middle-header { font-size: 14px; font-weight: bold; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
-  .product-row { display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 12px; cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
+  .product-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 12px; cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
   .product-row:hover { background: var(--surface-2); }
   .product-row.featured { background: rgba(255, 107, 53, 0.06); border-color: rgba(255, 107, 53, 0.4); }
   .product-row + .product-row { margin-top: 6px; }
 
-  .product-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); color: var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; }
+  .product-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); color: var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
   .product-row.featured .product-rank { background: var(--accent); color: white; }
 
-  .product-img { width: 64px; height: 64px; background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .product-img { width: 56px; height: 56px; background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
   .product-img img { max-width: 80%; max-height: 80%; object-fit: contain; }
   .product-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; color: white; background: linear-gradient(135deg, #ff6b35 0%, #a855f7 100%); }
 
   .product-info { flex: 1; min-width: 0; }
-  .product-row-name { font-size: 14px; font-weight: bold; margin-bottom: 6px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .product-row-score { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .product-row-pct { font-size: 13px; font-weight: bold; color: var(--positive); }
-  .product-row-label { font-size: 11px; color: var(--text-dim); }
+  .product-row-name { font-size: 15px; font-weight: bold; margin-bottom: 8px; line-height: 1.25; }
+  .product-row-name-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-  .product-row-counts { display: flex; gap: 10px; margin-bottom: 6px; font-size: 11px; }
-  .count-pill { display: flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-weight: bold; }
-  .count-pill.pos { background: rgba(6, 185, 111, 0.15); color: var(--positive); }
-  .count-pill.neu { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
-  .count-pill.neg { background: rgba(233, 69, 96, 0.15); color: var(--negative); }
+  /* NEW: Prominent sentiment summary */
+  .sentiment-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .positive-pill { display: inline-flex; align-items: center; padding: 3px 10px; background: rgba(6, 185, 111, 0.15); color: var(--positive); border-radius: 999px; font-size: 11px; font-weight: bold; }
+  .user-count { font-size: 11px; color: var(--text-muted); }
 
-  .sentiment-bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; display: flex; margin-bottom: 6px; }
+  /* NEW: Bigger sentiment bar */
+  .sentiment-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; display: flex; margin-bottom: 8px; }
   .sentiment-bar .pos { background: var(--positive); }
   .sentiment-bar .neu { background: var(--amber); }
   .sentiment-bar .neg { background: var(--negative); }
 
-  .product-row-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); }
+  .product-row-meta { font-size: 11px; color: var(--text-muted); }
 
   .product-row.skeleton { opacity: 0.5; cursor: default; border-style: dashed; border-color: var(--border); background: var(--surface-2); }
   .product-row.skeleton:hover { background: var(--surface-2); }
@@ -149,28 +146,32 @@
   .show-more-btn { display: block; width: 100%; margin-top: 16px; padding: 12px; background: transparent; color: var(--text-dim); font-size: 13px; border-radius: 8px; transition: all 0.15s; }
   .show-more-btn:hover { background: var(--surface-2); color: var(--text); }
 
-  /* RIGHT — Featured product */
+  /* RIGHT — Featured product (BIGGER now) */
   .compare-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
-  .featured-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .featured-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+
+  .featured-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+  .featured-top-info { flex: 1; min-width: 0; }
   .featured-rank-tag { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
   .featured-rank-tag strong { color: var(--text); }
-  .featured-name { font-size: 24px; font-weight: bold; line-height: 1.2; margin-bottom: 14px; }
+  .featured-name { font-size: 30px; font-weight: bold; line-height: 1.15; margin-bottom: 16px; letter-spacing: -0.5px; }
   .featured-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-  .featured-tag { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; background: rgba(6, 185, 111, 0.1); color: var(--positive); border: 1px solid rgba(6, 185, 111, 0.3); border-radius: 999px; font-size: 11px; font-weight: bold; }
+  .featured-tag { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; background: rgba(6, 185, 111, 0.1); color: var(--positive); border: 1px solid rgba(6, 185, 111, 0.3); border-radius: 999px; font-size: 12px; font-weight: bold; }
   .featured-tag.neutral { background: var(--surface-2); color: var(--text-dim); border-color: var(--border); }
-  .featured-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 18px; line-height: 1.5; }
+  .featured-desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
 
-  .featured-img-wrap { width: 100%; aspect-ratio: 1.2; background: var(--surface-2); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 18px; }
-  .featured-img-wrap img { max-width: 65%; max-height: 65%; object-fit: contain; }
-  .featured-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 64px; font-weight: bold; color: white; background: linear-gradient(135deg, #ff6b35 0%, #a855f7 100%); }
+  .featured-img-wrap { width: 180px; aspect-ratio: 1; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .featured-img-wrap img { max-width: 75%; max-height: 75%; object-fit: contain; }
+  .featured-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 70px; font-weight: bold; color: white; background: linear-gradient(135deg, #ff6b35 0%, #a855f7 100%); }
 
-  .sentiment-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .sentiment-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  /* Sentiment score card */
+  .sentiment-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .sentiment-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .sentiment-card-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; }
   .sentiment-card-help { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; cursor: pointer; }
   .sentiment-card-help:hover { color: var(--text); }
 
-  .sentiment-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .sentiment-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   .sentiment-row:last-child { margin-bottom: 0; }
   .sentiment-emoji { width: 22px; flex-shrink: 0; font-size: 14px; }
   .sentiment-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
@@ -178,27 +179,39 @@
   .sentiment-bar-fill.positive { background: var(--positive); }
   .sentiment-bar-fill.neutral { background: var(--amber); }
   .sentiment-bar-fill.negative { background: var(--negative); }
-  .sentiment-count { font-size: 11px; color: var(--text-dim); flex-shrink: 0; min-width: 70px; text-align: right; }
+  .sentiment-count { font-size: 12px; color: var(--text-dim); flex-shrink: 0; min-width: 80px; text-align: right; }
   .sentiment-count strong { color: var(--text); font-weight: bold; }
 
-  .quotes-section { margin-bottom: 18px; }
-  .quotes-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; margin-bottom: 10px; }
-  .quote { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
-  .quote-text { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 6px; font-style: italic; }
-  .quote-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
-  .quote-icon { width: 14px; height: 14px; background: #ff4500; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 7px; font-weight: bold; }
-  .no-quotes { color: var(--text-muted); font-size: 12px; padding: 12px; background: var(--surface-2); border: 1px dashed var(--border); border-radius: 10px; text-align: center; }
+  /* Pros/Cons grid */
+  .pros-cons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .pc-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .pc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; margin-bottom: 12px; }
+  .pc-title.pros { color: var(--positive); }
+  .pc-title.cons { color: var(--negative); }
+  .pc-quote { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 10px; padding-left: 16px; position: relative; }
+  .pc-quote::before { content: ""; position: absolute; left: 0; top: 6px; width: 8px; height: 8px; border-radius: 50%; }
+  .pc-quote.pros::before { background: var(--positive); }
+  .pc-quote.cons::before { background: var(--negative); }
+  .pc-quote-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; padding-left: 16px; }
+  .pc-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
-  .cta-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .cta-primary { flex: 1; min-width: 150px; padding: 12px 16px; background: var(--positive); color: var(--bg); font-weight: bold; font-size: 13px; border-radius: 10px; transition: all 0.15s; text-align: center; }
-  .cta-primary:hover { opacity: 0.9; }
-  .cta-retailer { padding: 10px 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); border-radius: 10px; font-size: 12px; font-weight: bold; transition: all 0.15s; }
-  .cta-retailer:hover { border-color: var(--accent); color: var(--text); }
+  /* Retailer cards row */
+  .retailers-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .retailer-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; transition: all 0.15s; }
+  .retailer-card:hover { border-color: var(--accent); }
+  .retailer-name { font-size: 12px; font-weight: bold; color: var(--text); margin-bottom: 4px; }
+  .retailer-action { font-size: 11px; color: var(--text-dim); }
+  .retailer-card:hover .retailer-action { color: var(--accent); }
 
-  .disclaimer { margin-top: 14px; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  /* Primary CTA */
+  .cta-primary-wrap { margin-bottom: 14px; }
+  .cta-primary { display: block; width: 100%; padding: 14px 18px; background: var(--positive); color: var(--bg); font-weight: bold; font-size: 14px; border-radius: 12px; transition: all 0.15s; text-align: center; }
+  .cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
 
-  .empty-featured { background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; padding: 40px 24px; text-align: center; }
-  .empty-featured h3 { font-size: 16px; margin-bottom: 8px; }
+  .disclaimer { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  .empty-featured { background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; padding: 60px 24px; text-align: center; }
+  .empty-featured h3 { font-size: 18px; margin-bottom: 10px; }
   .empty-featured p { color: var(--text-dim); font-size: 13px; }
 
   /* MOBILE MENU */
@@ -213,11 +226,12 @@
   .mobile-menu a { display: block; padding: 10px 12px; border-radius: 7px; font-size: 14px; color: var(--text-dim); }
 
   /* RESPONSIVE */
-  @media (max-width: 1280px) {
-    .compare-grid { grid-template-columns: 240px 1fr 380px; gap: 16px; }
-    .featured-name { font-size: 22px; }
+  @media (max-width: 1380px) {
+    .compare-grid { grid-template-columns: 240px 420px 1fr; gap: 16px; }
+    .featured-name { font-size: 26px; }
+    .featured-img-wrap { width: 150px; }
   }
-  @media (max-width: 1100px) {
+  @media (max-width: 1180px) {
     .compare-grid { grid-template-columns: 1fr 1fr; }
     .compare-left { grid-column: 1 / -1; flex-direction: row; }
     .compare-left .card { flex: 1; }
@@ -237,12 +251,15 @@
     .page-header h1 { font-size: 26px; }
     .header-actions { width: 100%; }
     .header-btn { flex: 1; justify-content: center; }
-    .featured-name { font-size: 20px; }
-    .featured-card { padding: 18px; }
+    .featured-name { font-size: 22px; }
+    .featured-card { padding: 20px; }
+    .featured-top { flex-direction: column-reverse; }
+    .featured-img-wrap { width: 140px; align-self: flex-start; }
     .compare-middle { padding: 14px; }
     .product-row { padding: 10px; gap: 10px; }
-    .product-img { width: 52px; height: 52px; }
-    .product-row-name { font-size: 13px; }
+    .product-img { width: 48px; height: 48px; }
+    .product-row-name { font-size: 14px; }
+    .pros-cons-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -317,7 +334,6 @@
 
   <div class="compare-grid">
 
-    <!-- LEFT -->
     <aside class="compare-left">
       <div class="card">
         <div class="card-title">Subreddits Analyzed</div>
@@ -356,15 +372,13 @@
       </div>
     </aside>
 
-    <!-- MIDDLE -->
     <div class="compare-middle">
-      <div class="middle-header">Ranked by Holy Grail Score</div>
+      <div class="middle-header">Ranked by Sentiment</div>
       <div id="productList">
         <div class="skeleton-text" style="text-align: center; padding: 40px;">Loading products...</div>
       </div>
     </div>
 
-    <!-- RIGHT — Featured product -->
     <aside class="compare-right" id="featuredPanel">
       <div class="empty-featured">
         <h3>Loading featured product...</h3>
@@ -442,7 +456,6 @@
     const allProducts = productsRes.data || [];
     const allMentions = mentionsRes.data || [];
 
-    // Filter to cleansers only
     const products = allProducts.filter(window.isCleanser);
     const productNames = new Set(products.map(p => p.name));
     const mentions = allMentions.filter(m => productNames.has(m.product_name));
@@ -515,44 +528,43 @@
   }
 
   function productRow(p, rank, isFeatured) {
-    const total = (p.positive_count || 0) + (p.neutral_count || 0) + (p.negative_count || 0) || (p.mention_count || 0);
     const pos = p.positive_count || 0;
     const neg = p.negative_count || 0;
-    const neu = Math.max(0, (p.mention_count || 0) - pos - neg);
+    const total = p.mention_count || 0;
+    const neu = Math.max(0, total - pos - neg);
     const denom = pos + neu + neg;
     const pct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
     const slug = window.slugify(p.name);
     return `<div class="product-row${isFeatured ? ' featured' : ''}" onclick="openProduct('${slug}')">
       <div class="product-rank">${rank}</div>
-      <div class="product-img">${productImg(p)}</div>
+      <div class="product-img">${productImg(p, 'product-img-fallback')}</div>
       <div class="product-info">
-        <div class="product-row-name">${window.escapeHtml(p.name || 'Unknown')}</div>
-        <div class="product-row-score">
-          <span class="product-row-pct">${denom > 0 ? pct + '%' : '—'}</span>
-          <span class="product-row-label">Holy Grail Score</span>
-        </div>
-        <div class="product-row-counts">
-          ${pos > 0 ? `<span class="count-pill pos">👍 ${pos}</span>` : ''}
-          ${neu > 0 ? `<span class="count-pill neu">😐 ${neu}</span>` : ''}
-          ${neg > 0 ? `<span class="count-pill neg">👎 ${neg}</span>` : ''}
-        </div>
-        ${denom > 0 ? `<div class="sentiment-bar">
-          <div class="pos" style="width: ${(pos/denom)*100}%"></div>
-          <div class="neu" style="width: ${(neu/denom)*100}%"></div>
-          <div class="neg" style="width: ${(neg/denom)*100}%"></div>
-        </div>` : ''}
-        <div class="product-row-meta">
-          ${p.brand ? window.escapeHtml(p.brand) + ' · ' : ''}${p.mention_count || 0} mention${p.mention_count === 1 ? '' : 's'}
-        </div>
+        <div class="product-row-name"><div class="product-row-name-text">${window.escapeHtml(p.name || 'Unknown')}</div></div>
+        ${denom > 0 ? `
+          <div class="sentiment-summary">
+            <span class="positive-pill">${pct}% positive</span>
+            <span class="user-count">of ${total} mention${total === 1 ? '' : 's'}</span>
+          </div>
+          <div class="sentiment-bar">
+            <div class="pos" style="width: ${(pos/denom)*100}%"></div>
+            <div class="neu" style="width: ${(neu/denom)*100}%"></div>
+            <div class="neg" style="width: ${(neg/denom)*100}%"></div>
+          </div>
+        ` : `
+          <div class="sentiment-summary">
+            <span class="user-count">${total} mention${total === 1 ? '' : 's'} · awaiting sentiment</span>
+          </div>
+        `}
+        <div class="product-row-meta">${p.brand ? window.escapeHtml(p.brand) : ''}${p.brand && p.product_category ? ' · ' : ''}${p.product_category ? window.escapeHtml(p.product_category) : ''}</div>
       </div>
     </div>`;
   }
 
-  function productImg(p) {
+  function productImg(p, fallbackClass) {
     const brand = (p.brand || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const letter = window.initial(p.name);
-    if (!brand) return `<div class="product-img-fallback">${letter}</div>`;
-    return `<img src="https://logo.clearbit.com/${brand}.com" onerror="handleImgError(this)" data-letter="${letter}" data-fallback="product-img-fallback" alt="">`;
+    if (!brand) return `<div class="${fallbackClass}">${letter}</div>`;
+    return `<img src="https://logo.clearbit.com/${brand}.com" onerror="handleImgError(this)" data-letter="${letter}" data-fallback="${fallbackClass}" alt="">`;
   }
 
   function renderFeatured(product, allMentions) {
@@ -567,31 +579,36 @@
     }
 
     const productMentions = allMentions.filter(m => m.product_name === product.name);
-    const totalProducts = (productMentions.length === 0 ? 1 : 0) + productMentions.length;
     const pos = product.positive_count || 0;
     const neg = product.negative_count || 0;
-    const neu = Math.max(0, (product.mention_count || 0) - pos - neg);
+    const total = product.mention_count || 0;
+    const neu = Math.max(0, total - pos - neg);
     const denom = pos + neu + neg;
     const posPct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
     const neuPct = denom > 0 ? Math.round((neu / denom) * 100) : 0;
     const negPct = denom > 0 ? Math.round((neg / denom) * 100) : 0;
 
-    const recentQuotes = productMentions.slice(0, 3);
+    const positiveQuotes = productMentions.filter(m => m.sentiment === 'positive').slice(0, 2);
+    const negativeQuotes = productMentions.filter(m => m.sentiment === 'negative').slice(0, 2);
+
     const slug = window.slugify(product.name);
-    const amazonUrl = 'https://www.amazon.in/s?k=' + encodeURIComponent(product.name);
-    const nykaaUrl = 'https://www.nykaa.com/search/result/?q=' + encodeURIComponent(product.name);
+    const productQuery = encodeURIComponent(product.name);
 
     panel.innerHTML = `
       <div class="featured-card">
-        <div class="featured-rank-tag">Rank <strong>1</strong></div>
-        <div class="featured-name">${window.escapeHtml(product.name)}</div>
-        <div class="featured-tags">
-          ${product.product_category ? `<span class="featured-tag">${window.escapeHtml(product.product_category)}</span>` : ''}
-          ${product.skin_type ? `<span class="featured-tag neutral">${window.escapeHtml(product.skin_type)}</span>` : '<span class="featured-tag neutral">All Skin Types</span>'}
-        </div>
-
-        <div class="featured-img-wrap">
-          ${featuredImg(product)}
+        <div class="featured-top">
+          <div class="featured-top-info">
+            <div class="featured-rank-tag">Rank <strong>1</strong></div>
+            <div class="featured-name">${window.escapeHtml(product.name)}</div>
+            <div class="featured-tags">
+              ${product.product_category ? `<span class="featured-tag">${window.escapeHtml(product.product_category)}</span>` : ''}
+              ${product.skin_type ? `<span class="featured-tag neutral">${window.escapeHtml(product.skin_type)}</span>` : '<span class="featured-tag neutral">All Skin Types</span>'}
+            </div>
+            ${product.brand ? `<div class="featured-desc">By <strong style="color: var(--text);">${window.escapeHtml(product.brand)}</strong> · ${total} Reddit mention${total === 1 ? '' : 's'} analyzed</div>` : ''}
+          </div>
+          <div class="featured-img-wrap">
+            ${productImg(product, 'featured-img-fallback')}
+          </div>
         </div>
 
         <div class="sentiment-card">
@@ -618,38 +635,49 @@
           ` : '<div style="color: var(--text-muted); font-size: 12px; text-align: center;">Sentiment data appearing as we scan more mentions.</div>'}
         </div>
 
-        <div class="quotes-section">
-          <div class="quotes-title">What Reddit users say</div>
-          ${recentQuotes.length > 0 ? recentQuotes.map(q => `
-            <div class="quote">
-              <div class="quote-text">"${window.escapeHtml((q.comment_text || '').slice(0, 180))}${(q.comment_text || '').length > 180 ? '...' : ''}"</div>
-              <div class="quote-meta">
-                <div class="quote-icon">r/</div>
-                <span>r/${window.escapeHtml(q.subreddit || 'reddit')}</span>
-                <span>· ${window.timeAgo(q.created_at)}</span>
-              </div>
-            </div>
-          `).join('') : '<div class="no-quotes">More user reviews appear here as we scan Reddit weekly.</div>'}
+        <div class="pros-cons-grid">
+          <div class="pc-card">
+            <div class="pc-title pros">What users love</div>
+            ${positiveQuotes.length > 0 ? positiveQuotes.map(q => `
+              <div class="pc-quote pros">"${window.escapeHtml((q.comment_text || '').slice(0, 120))}${(q.comment_text || '').length > 120 ? '...' : ''}"</div>
+              <div class="pc-quote-meta">r/${window.escapeHtml(q.subreddit || 'reddit')} · ${window.timeAgo(q.created_at)}</div>
+            `).join('') : '<div class="pc-empty">No positive mentions yet. More appearing as we scan weekly.</div>'}
+          </div>
+          <div class="pc-card">
+            <div class="pc-title cons">Common concerns</div>
+            ${negativeQuotes.length > 0 ? negativeQuotes.map(q => `
+              <div class="pc-quote cons">"${window.escapeHtml((q.comment_text || '').slice(0, 120))}${(q.comment_text || '').length > 120 ? '...' : ''}"</div>
+              <div class="pc-quote-meta">r/${window.escapeHtml(q.subreddit || 'reddit')} · ${window.timeAgo(q.created_at)}</div>
+            `).join('') : '<div class="pc-empty">No negative mentions yet. Honest critiques appear here as we find them.</div>'}
+          </div>
         </div>
 
-        <div class="cta-row">
-          <a href="/skincare/cleansers/${slug}" class="cta-primary">View full analysis</a>
-        </div>
-        <div class="cta-row" style="margin-top: 8px;">
-          <a href="${amazonUrl}" target="_blank" rel="noopener" class="cta-retailer">↗ View on Amazon</a>
-          <a href="${nykaaUrl}" target="_blank" rel="noopener" class="cta-retailer">↗ View on Nykaa</a>
+        <div class="retailers-row">
+          <a href="https://www.amazon.in/s?k=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+            <div class="retailer-name">Amazon</div>
+            <div class="retailer-action">Find prices →</div>
+          </a>
+          <a href="https://www.nykaa.com/search/result/?q=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+            <div class="retailer-name">Nykaa</div>
+            <div class="retailer-action">Find prices →</div>
+          </a>
+          <a href="https://www.flipkart.com/search?q=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+            <div class="retailer-name">Flipkart</div>
+            <div class="retailer-action">Find prices →</div>
+          </a>
+          <a href="https://www.1mg.com/search/all?name=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+            <div class="retailer-name">Tata 1mg</div>
+            <div class="retailer-action">Find prices →</div>
+          </a>
         </div>
 
-        <p class="disclaimer">Outbound links search the retailer for this product. We don't display fake prices — exact pricing varies by retailer and time. More analysis (top pros/cons) coming as we scrape more reviews.</p>
+        <div class="cta-primary-wrap">
+          <a href="/skincare/cleansers/${slug}" class="cta-primary">View full analysis →</a>
+        </div>
+
+        <p class="disclaimer">Outbound links search the retailer for this product. We don't show fake prices — exact pricing varies by retailer and time. Top pros/cons are real Reddit user quotes pulled from our database.</p>
       </div>
     `;
-  }
-
-  function featuredImg(p) {
-    const brand = (p.brand || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const letter = window.initial(p.name);
-    if (!brand) return `<div class="featured-img-fallback">${letter}</div>`;
-    return `<img src="https://logo.clearbit.com/${brand}.com" onerror="handleImgError(this)" data-letter="${letter}" data-fallback="featured-img-fallback" alt="">`;
   }
 
   loadAll().catch(err => {
