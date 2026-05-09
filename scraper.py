@@ -1,7 +1,9 @@
 """
-IndiaRecs Scraper — Auto-Discovery Edition
-Scrapes Reddit, uses Gemini to extract products + sentiment in one pass,
-auto-creates new products in Supabase. RedditRecs-style.
+IndiaRecs Scraper — Path G Edition
+- Tighter keyword + review-intent filter (fits in 20 RPD Gemini quota)
+- Username tracking for per-user voting (RedditRecs pattern)
+- 75/25 weighted score formula (RedditRecs formula)
+- Score recomputation runs at end of every scrape
 """
 
 import os
@@ -17,16 +19,16 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
+# Focused on highest-signal subreddits only
 SUBREDDITS = [
     "https://www.reddit.com/r/IndianSkincareAddicts/",
     "https://www.reddit.com/r/SkincareAddiction/",
-    "https://www.reddit.com/r/AsianBeauty/",
-    "https://www.reddit.com/r/30PlusSkinCare/",
 ]
 
-MAX_ITEMS = 50
-MAX_POSTS_PER_SUB = 10
-MAX_COMMENTS = 15
+# Tighter limits to stay well under Gemini 20 RPD
+MAX_ITEMS = 30           # was 50
+MAX_POSTS_PER_SUB = 8    # was 10
+MAX_COMMENTS = 10        # was 15
 
 GENERIC_TERMS = {
     "moisturizer", "moisturiser", "cleanser", "sunscreen",
@@ -45,21 +47,38 @@ gemini = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 
 def is_genuine_review(text):
-    """Permissive filter — let Gemini do the heavy lifting."""
-    if not text or len(text.split()) < 15:
+    """Strict filter — must mention skincare AND show review intent."""
+    if not text or len(text.split()) < 20:
         return False
     if "AutoModerator" in text or "[deleted]" in text or "[removed]" in text:
         return False
     text_lower = text.lower()
-    # Must mention something skincare-related
+
+    # Must mention skincare
     skincare_keywords = [
-        "skin", "moisturiz", "moisturis", "serum", "sunscreen", "spf",
+        "moisturiz", "moisturis", "serum", "sunscreen", "spf",
         "cleanser", "face wash", "facewash", "toner", "exfoliat",
         "retinol", "niacinamide", "vitamin c", "salicylic", "hyaluronic",
         "acne", "pimple", "breakout", "pigment", "ceramide",
-        "peptide", "routine", "skincare", "dermatologist",
+        "peptide", "skincare", "skin care",
     ]
-    return any(k in text_lower for k in skincare_keywords)
+    if not any(k in text_lower for k in skincare_keywords):
+        return False
+
+    # Must show review intent (someone sharing personal experience)
+    review_signals = [
+        "i use", "i used", "i've used", "ive used", "been using",
+        "i tried", "i've tried", "ive tried", "my skin", "for me",
+        "works for me", "worked for me", "doesn't work", "did not work",
+        "broke me out", "cleared my", "helped my", "love this",
+        "hate this", "would recommend", "highly recommend",
+        "holy grail", "after using", "since using", "changed my",
+        "honest review", "ditched", "switched to", "swear by",
+        "game changer", "best i've used", "obsessed with", "the best",
+        "wouldn't recommend", "regret", "worth it", "love it",
+        "hate it", "made my skin", "tried this", "currently using",
+    ]
+    return any(s in text_lower for s in review_signals)
 
 
 def extract_products_with_gemini(text):
@@ -153,44 +172,117 @@ def find_or_create_product(extracted, existing_products):
         return None, False
 
 
-def save_mention(product, comment_text, sentiment, subreddit):
+def save_mention(product, comment_text, sentiment, subreddit, username):
+    """Just inserts into mentions table — score recompute happens later in finalize_all_scores()."""
     try:
         supabase.table("mentions").insert({
             "product_name": product["name"],
             "comment_text": comment_text[:1000],
             "sentiment": sentiment,
             "subreddit": subreddit,
+            "username": username,
         }).execute()
-
-        positive = product.get("positive_count", 0)
-        negative = product.get("negative_count", 0)
-        mentions = product.get("mention_count", 0) + 1
-        if sentiment == "positive":
-            positive += 1
-        elif sentiment == "negative":
-            negative += 1
-        score = positive - negative
-
-        supabase.table("products").update({
-            "mention_count": mentions,
-            "positive_count": positive,
-            "negative_count": negative,
-            "score": score,
-        }).eq("id", product["id"]).execute()
-
-        product["mention_count"] = mentions
-        product["positive_count"] = positive
-        product["negative_count"] = negative
-        product["score"] = score
         return True
     except Exception as e:
         print(f"  Save failed: {e}")
         return False
 
 
+def finalize_all_scores():
+    """
+    Recompute every product's score using:
+    - Per-user voting (1 user = 1 vote per product, based on their dominant sentiment)
+    - 75/25 weighted formula: 0.75 * normalized_positive_users + 0.25 * positive_ratio
+    Called at the end of every scraper run.
+    """
+    print("\n  Recomputing scores (per-user voting + 75/25 weighted formula)...")
+
+    # Pull all mentions
+    mentions_data = supabase.table("mentions").select(
+        "product_name, username, sentiment"
+    ).execute().data
+
+    # Group: product → user → sentiment counts
+    by_product = {}
+    for m in mentions_data:
+        pn = m.get("product_name")
+        if not pn:
+            continue
+        user = m.get("username") or "anonymous"
+        sentiment = m.get("sentiment") or "neutral"
+        by_product.setdefault(pn, {}).setdefault(
+            user, {"positive": 0, "negative": 0, "neutral": 0}
+        )
+        by_product[pn][user][sentiment] = by_product[pn][user].get(sentiment, 0) + 1
+
+    # For each product: dedupe users by dominant sentiment, count unique voters
+    product_stats = {}
+    for pn, users in by_product.items():
+        pos = neg = neu = 0
+        total_mentions = 0
+        for user, counts in users.items():
+            total_mentions += counts["positive"] + counts["negative"] + counts["neutral"]
+            dominant = max(counts, key=counts.get)
+            if dominant == "positive":
+                pos += 1
+            elif dominant == "negative":
+                neg += 1
+            else:
+                neu += 1
+        product_stats[pn] = {
+            "positive_users": pos,
+            "negative_users": neg,
+            "neutral_users": neu,
+            "total_mentions": total_mentions,
+        }
+
+    # For 75/25 normalization, find max positive across all products
+    max_positive = max(
+        (s["positive_users"] for s in product_stats.values()),
+        default=1
+    ) or 1
+
+    # Update every product
+    products = supabase.table("products").select("id, name").execute().data
+    updated = 0
+    for product in products:
+        pn = product["name"]
+        if pn not in product_stats:
+            # Product has no mentions — zero everything
+            supabase.table("products").update({
+                "mention_count": 0,
+                "positive_count": 0,
+                "negative_count": 0,
+                "score": 0,
+            }).eq("id", product["id"]).execute()
+            continue
+
+        s = product_stats[pn]
+        pos = s["positive_users"]
+        neg = s["negative_users"]
+        denom = pos + neg
+
+        if pos + neg + s["neutral_users"] == 0:
+            score = 0.0
+        else:
+            norm_positive = pos / max_positive
+            pos_ratio = pos / denom if denom > 0 else 0
+            score = round((0.75 * norm_positive + 0.25 * pos_ratio) * 100, 2)
+
+        supabase.table("products").update({
+            "mention_count": s["total_mentions"],
+            "positive_count": pos,
+            "negative_count": neg,
+            "score": score,
+        }).eq("id", product["id"]).execute()
+        updated += 1
+
+    print(f"  Recomputed scores for {updated} products (max_positive={max_positive})")
+
+
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper - Auto-Discovery Edition")
+    print("IndiaRecs Scraper - Path G Edition")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
@@ -235,12 +327,15 @@ def main():
             skip_filter += 1
             continue
 
+        # Capture username (Reddit Scraper Lite uses 'username' field)
+        username = item.get("username") or item.get("author") or "anonymous"
+        subreddit = item.get("communityName", "unknown")
+
         result = extract_products_with_gemini(text)
         if not result or not result.get("products"):
             skip_no_extract += 1
             continue
 
-        subreddit = item.get("communityName", "unknown")
         for extracted in result["products"]:
             if not is_valid_product(extracted):
                 skip_invalid += 1
@@ -257,11 +352,16 @@ def main():
             if sentiment not in ("positive", "negative", "neutral"):
                 sentiment = "neutral"
 
-            if save_mention(product, text, sentiment, subreddit):
+            if save_mention(product, text, sentiment, subreddit, username):
                 saved += 1
-                print(f"    {sentiment} → {product['name']}")
+                print(f"    {sentiment} → {product['name']} (by u/{username})")
 
-    print("\n[4/4] Done!")
+    print("\n[4/4] Done with scrape, finalizing scores...")
+    try:
+        finalize_all_scores()
+    except Exception as e:
+        print(f"  Score finalize failed: {e}")
+
     print("=" * 60)
     print(f"  New products discovered: {new_products}")
     print(f"  Mentions saved:          {saved}")
