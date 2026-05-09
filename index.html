@@ -526,7 +526,10 @@
     document.getElementById('catGrid').innerHTML = cats.map(c => {
       const isLive = liveCats.has(c.name.toLowerCase());
       const count = counts[c.name.toLowerCase()] || 0;
-      if (isLive) return `<div class="cat-card live"><div class="cat-icon ${c.cls}">${c.icon}</div><div><div class="cat-name">${c.name}</div><div class="cat-meta">${count} product${count === 1 ? '' : 's'} · live</div></div></div>`;
+     if (isLive) {
+  const link = c.name === 'Skincare' ? '/skincare/cleansers' : '#';
+  return `<a href="${link}" class="cat-card live"><div class="cat-icon ${c.cls}">${c.icon}</div><div><div class="cat-name">${c.name}</div><div class="cat-meta">${count} product${count === 1 ? '' : 's'} · live</div></div></a>`;
+}
       return `<div class="cat-card coming"><div class="cat-icon ${c.cls}">${c.icon}</div><div><div class="cat-name">${c.name}</div><div class="cat-meta">Coming soon</div></div></div>`;
     }).join('');
   }
