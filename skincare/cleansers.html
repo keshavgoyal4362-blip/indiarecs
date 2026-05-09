@@ -27,7 +27,6 @@
   a { color: inherit; text-decoration: none; }
   button { cursor: pointer; border: none; background: none; color: inherit; }
 
-  /* NAV */
   nav {
     background: rgba(10, 10, 10, 0.92);
     backdrop-filter: blur(12px);
@@ -49,7 +48,6 @@
   .dropdown-item:hover { background: var(--surface-2); color: var(--text); }
   .dropdown-item.coming { color: var(--text-muted); cursor: default; font-size: 12px; }
   .dropdown-section { padding: 6px 14px 3px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; }
-  .dropdown-divider { height: 1px; background: var(--border); margin: 5px 0; }
   .nav-search { flex: 1; max-width: 460px; margin: 0 12px 0 auto; position: relative; }
   .nav-search input { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 9px 12px 9px 34px; border-radius: 9px; font-size: 12.5px; outline: none; }
   .nav-search::before { content: "🔍"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.5; }
@@ -57,16 +55,13 @@
   .nav-link:hover { background: var(--surface); color: var(--text); }
   .nav-mobile-btn { display: none; padding: 8px 12px; border-radius: 7px; font-size: 20px; color: var(--text); background: var(--surface); border: 1px solid var(--border); }
 
-  /* MAIN */
   main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
 
-  /* BREADCRUMBS */
   .breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); margin-bottom: 18px; flex-wrap: wrap; }
   .breadcrumbs a:hover { color: var(--text); }
   .breadcrumbs .sep { color: var(--text-muted); }
   .breadcrumbs .current { color: var(--text); }
 
-  /* PAGE HEADER */
   .page-header { display: flex; align-items: start; justify-content: space-between; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
   .page-header h1 { font-size: 38px; line-height: 1.1; letter-spacing: -1px; font-weight: bold; margin-bottom: 10px; }
   .page-header h1 span { color: var(--accent); }
@@ -77,20 +72,12 @@
   .header-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--text); font-weight: bold; transition: all 0.15s; }
   .header-btn:hover { border-color: var(--accent); }
 
-  /* 3-COLUMN GRID — middle narrower, right bigger */
-  .compare-grid {
-    display: grid;
-    grid-template-columns: 260px 460px 1fr;
-    gap: 20px;
-    align-items: start;
-  }
+  .compare-grid { display: grid; grid-template-columns: 260px 460px 1fr; gap: 20px; align-items: start; }
 
-  /* CARDS */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
   .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
   .card-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
 
-  /* LEFT SIDEBAR */
   .compare-left { display: flex; flex-direction: column; gap: 16px; }
   .subreddit-list { display: flex; flex-direction: column; gap: 12px; }
   .subreddit-item { display: flex; align-items: center; gap: 10px; }
@@ -106,7 +93,6 @@
   .sub-cat-name { font-size: 13px; font-weight: bold; }
   .sub-cat-desc { font-size: 11px; color: var(--text-dim); }
 
-  /* MIDDLE */
   .compare-middle { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
   .middle-header { font-size: 14px; font-weight: bold; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -119,19 +105,16 @@
   .product-row.featured .product-rank { background: var(--accent); color: white; }
 
   .product-img { width: 56px; height: 56px; background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-  .product-img img { max-width: 80%; max-height: 80%; object-fit: contain; }
-  .product-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; color: white; background: linear-gradient(135deg, #ff6b35 0%, #a855f7 100%); }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
 
   .product-info { flex: 1; min-width: 0; }
   .product-row-name { font-size: 15px; font-weight: bold; margin-bottom: 8px; line-height: 1.25; }
   .product-row-name-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-  /* NEW: Prominent sentiment summary */
   .sentiment-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
   .positive-pill { display: inline-flex; align-items: center; padding: 3px 10px; background: rgba(6, 185, 111, 0.15); color: var(--positive); border-radius: 999px; font-size: 11px; font-weight: bold; }
   .user-count { font-size: 11px; color: var(--text-muted); }
 
-  /* NEW: Bigger sentiment bar */
   .sentiment-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; display: flex; margin-bottom: 8px; }
   .sentiment-bar .pos { background: var(--positive); }
   .sentiment-bar .neu { background: var(--amber); }
@@ -143,10 +126,6 @@
   .product-row.skeleton:hover { background: var(--surface-2); }
   .skeleton-text { color: var(--text-muted); font-size: 13px; }
 
-  .show-more-btn { display: block; width: 100%; margin-top: 16px; padding: 12px; background: transparent; color: var(--text-dim); font-size: 13px; border-radius: 8px; transition: all 0.15s; }
-  .show-more-btn:hover { background: var(--surface-2); color: var(--text); }
-
-  /* RIGHT — Featured product (BIGGER now) */
   .compare-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
   .featured-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
 
@@ -161,10 +140,8 @@
   .featured-desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
 
   .featured-img-wrap { width: 180px; aspect-ratio: 1; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-  .featured-img-wrap img { max-width: 75%; max-height: 75%; object-fit: contain; }
-  .featured-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 70px; font-weight: bold; color: white; background: linear-gradient(135deg, #ff6b35 0%, #a855f7 100%); }
+  .featured-img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
 
-  /* Sentiment score card */
   .sentiment-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
   .sentiment-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .sentiment-card-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; }
@@ -182,7 +159,6 @@
   .sentiment-count { font-size: 12px; color: var(--text-dim); flex-shrink: 0; min-width: 80px; text-align: right; }
   .sentiment-count strong { color: var(--text); font-weight: bold; }
 
-  /* Pros/Cons grid */
   .pros-cons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
   .pc-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .pc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; margin-bottom: 12px; }
@@ -195,7 +171,6 @@
   .pc-quote-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; padding-left: 16px; }
   .pc-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
-  /* Retailer cards row */
   .retailers-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px; }
   .retailer-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; transition: all 0.15s; }
   .retailer-card:hover { border-color: var(--accent); }
@@ -203,7 +178,6 @@
   .retailer-action { font-size: 11px; color: var(--text-dim); }
   .retailer-card:hover .retailer-action { color: var(--accent); }
 
-  /* Primary CTA */
   .cta-primary-wrap { margin-bottom: 14px; }
   .cta-primary { display: block; width: 100%; padding: 14px 18px; background: var(--positive); color: var(--bg); font-weight: bold; font-size: 14px; border-radius: 12px; transition: all 0.15s; text-align: center; }
   .cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
@@ -214,7 +188,6 @@
   .empty-featured h3 { font-size: 18px; margin-bottom: 10px; }
   .empty-featured p { color: var(--text-dim); font-size: 13px; }
 
-  /* MOBILE MENU */
   .mobile-menu-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 998; }
   .mobile-menu-overlay.show { display: block; }
   .mobile-menu { display: none; position: fixed; top: 0; right: 0; width: min(300px, 85vw); height: 100%; background: var(--surface); border-left: 1px solid var(--border); z-index: 999; padding: 20px; overflow-y: auto; }
@@ -225,7 +198,6 @@
   .mobile-menu h4:first-of-type { margin-top: 32px; }
   .mobile-menu a { display: block; padding: 10px 12px; border-radius: 7px; font-size: 14px; color: var(--text-dim); }
 
-  /* RESPONSIVE */
   @media (max-width: 1380px) {
     .compare-grid { grid-template-columns: 240px 420px 1fr; gap: 16px; }
     .featured-name { font-size: 26px; }
@@ -309,7 +281,6 @@
 </nav>
 
 <main>
-
   <div class="breadcrumbs">
     <a href="/">Home</a>
     <span class="sep">›</span>
@@ -333,7 +304,6 @@
   </div>
 
   <div class="compare-grid">
-
     <aside class="compare-left">
       <div class="card">
         <div class="card-title">Subreddits Analyzed</div>
@@ -342,7 +312,6 @@
           <div class="skeleton-text">Loading...</div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">More to Explore</div>
         <div class="sub-cat-list">
@@ -375,7 +344,7 @@
     <div class="compare-middle">
       <div class="middle-header">Ranked by Sentiment</div>
       <div id="productList">
-        <div class="skeleton-text" style="text-align: center; padding: 40px;">Loading products...</div>
+        <div class="skeleton-text" style="text-align:center;padding:40px;">Loading products...</div>
       </div>
     </div>
 
@@ -385,9 +354,7 @@
         <p>Pulling top-ranked cleanser from Reddit data.</p>
       </div>
     </aside>
-
   </div>
-
 </main>
 
 <div class="mobile-menu-overlay" id="mobileOverlay" onclick="toggleMobile()"></div>
@@ -404,41 +371,75 @@
 </div>
 
 <script>
+  /* ── helpers ── */
   function toggleMobile() {
     document.getElementById('mobileMenu').classList.toggle('show');
     document.getElementById('mobileOverlay').classList.toggle('show');
   }
-  function handleImgError(img) {
-    const div = document.createElement('div');
-    div.className = img.dataset.fallback || 'product-img-fallback';
-    div.textContent = img.dataset.letter || '?';
-    img.replaceWith(div);
-  }
   function slugify(str) {
     return String(str || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  }
-  function openProduct(slug) {
-    window.location.href = '/skincare/cleansers/' + slug;
   }
   function timeAgo(d) {
     if (!d) return 'recently';
     const ms = Date.now() - new Date(d).getTime();
-    const m = Math.floor(ms/60000);
+    const m = Math.floor(ms / 60000);
     if (m < 1) return 'just now';
     if (m < 60) return m + 'm ago';
-    const h = Math.floor(m/60);
+    const h = Math.floor(m / 60);
     if (h < 24) return h + 'h ago';
-    const dd = Math.floor(h/24);
+    const dd = Math.floor(h / 24);
     if (dd < 7) return dd + 'd ago';
-    return Math.floor(dd/7) + 'w ago';
+    return Math.floor(dd / 7) + 'w ago';
   }
-  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
   function initial(n) { return (n || '?').trim().charAt(0).toUpperCase(); }
   function isCleanser(p) {
     const cat = (p.category || '').toLowerCase();
     const pcat = (p.product_category || '').toLowerCase();
     return cat === 'skincare' && /cleans|face\s?wash/.test(pcat);
   }
+
+  /* ── gradient palette for image fallback tiles ── */
+  const GRADIENTS = [
+    ['#ff6b35','#a855f7'],
+    ['#06b96f','#3b82f6'],
+    ['#f59e0b','#ec4899'],
+    ['#a855f7','#3b82f6'],
+    ['#e94560','#f59e0b'],
+    ['#06b96f','#a855f7'],
+  ];
+  function gradientForName(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+    const [a, b] = GRADIENTS[Math.abs(h) % GRADIENTS.length];
+    return 'linear-gradient(135deg,' + a + ' 0%,' + b + ' 100%)';
+  }
+
+  /*
+    Image strategy:
+    - Global brands (Cetaphil, Neutrogena, etc): try Clearbit logo, fallback to gradient tile
+    - Indian brands (Minimalist, Dot & Key, etc): gradient initial tile immediately
+    Gradient tiles are consistent, always look good, never break.
+  */
+  const GLOBAL_BRANDS = ['cetaphil','neutrogena','cerave','ponds','himalaya','biotique','dove','garnier','loreal','nivea','olay','lakme'];
+
+  function buildProductImg(p, size) {
+    const letter = initial(p.name);
+    const grad = gradientForName(p.name || '');
+    const brand = (p.brand || '').toLowerCase().trim();
+    const fontSize = size === 'large' ? '64px' : '20px';
+    const fallback = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:' + fontSize + ';font-weight:bold;color:white;background:' + grad + ';">' + letter + '</div>';
+    const isGlobal = GLOBAL_BRANDS.some(b => brand.includes(b));
+    if (isGlobal && brand) {
+      const domain = brand.replace(/[^a-z0-9]/g, '') + '.com';
+      const escaped = fallback.replace(/"/g, '&quot;');
+      return '<img src="https://logo.clearbit.com/' + domain + '" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.parentNode.innerHTML=\'' + escaped.replace(/'/g, '&#39;') + '\';" alt="' + escapeHtml(p.name) + '">';
+    }
+    return fallback;
+  }
+
   document.getElementById('mobileBtn').addEventListener('click', toggleMobile);
 </script>
 
@@ -448,39 +449,45 @@
   const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc';
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  let allMentionsGlobal = [];
+  let productsGlobal = [];
+
   async function loadAll() {
     const [productsRes, mentionsRes] = await Promise.all([
       supabase.from('products').select('*').order('score', { ascending: false }),
       supabase.from('mentions').select('*').order('created_at', { ascending: false })
     ]);
     const allProducts = productsRes.data || [];
-    const allMentions = mentionsRes.data || [];
+    allMentionsGlobal = mentionsRes.data || [];
 
-    const products = allProducts.filter(window.isCleanser);
-    const productNames = new Set(products.map(p => p.name));
-    const mentions = allMentions.filter(m => productNames.has(m.product_name));
+    productsGlobal = allProducts.filter(window.isCleanser);
+    const productNames = new Set(productsGlobal.map(p => p.name));
+    const mentions = allMentionsGlobal.filter(m => productNames.has(m.product_name));
 
     renderHeader(mentions);
     renderSubreddits(mentions);
-    renderProductList(products);
-    renderFeatured(products[0], allMentions);
+    renderProductList(productsGlobal);
+    if (productsGlobal.length > 0) renderFeatured(productsGlobal[0], 0);
   }
+
+  /* ─── THE FIX: clicking a row updates the right panel, does NOT navigate ─── */
+  window.selectProduct = function(index) {
+    document.querySelectorAll('.product-row[data-idx]').forEach((row, i) => {
+      row.classList.toggle('featured', i === index);
+    });
+    renderFeatured(productsGlobal[index], index);
+  };
 
   function renderHeader(mentions) {
     document.getElementById('metaCount').textContent = mentions.length;
     document.getElementById('metaPlural').textContent = mentions.length === 1 ? '' : 's';
-    if (mentions.length > 0) {
-      document.getElementById('metaUpdated').textContent = window.timeAgo(mentions[0].created_at);
-    } else {
-      document.getElementById('metaUpdated').textContent = 'no mentions yet';
-    }
+    document.getElementById('metaUpdated').textContent =
+      mentions.length > 0 ? window.timeAgo(mentions[0].created_at) : 'no mentions yet';
   }
 
   function renderSubreddits(mentions) {
     const counts = {};
-    mentions.forEach(m => {
-      if (m.subreddit) counts[m.subreddit] = (counts[m.subreddit] || 0) + 1;
-    });
+    mentions.forEach(m => { if (m.subreddit) counts[m.subreddit] = (counts[m.subreddit] || 0) + 1; });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     const el = document.getElementById('subredditList');
     if (!sorted.length) {
@@ -503,20 +510,19 @@
     const el = document.getElementById('productList');
     if (!products.length) {
       el.innerHTML = `
-        <div style="text-align: center; padding: 40px 20px; color: var(--text-dim);">
-          <div style="font-size: 36px; margin-bottom: 12px;">🔍</div>
-          <strong style="color: var(--text); display: block; margin-bottom: 6px; font-size: 16px;">No cleansers discovered yet</strong>
-          <p style="font-size: 13px; max-width: 320px; margin: 0 auto;">Our scraper runs weekly. Cleansers mentioned on Reddit will appear here as we analyze more posts.</p>
+        <div style="text-align:center;padding:40px 20px;color:var(--text-dim);">
+          <div style="font-size:36px;margin-bottom:12px;">🔍</div>
+          <strong style="color:var(--text);display:block;margin-bottom:6px;font-size:16px;">No cleansers discovered yet</strong>
+          <p style="font-size:13px;max-width:320px;margin:0 auto;">Our scraper runs weekly. Cleansers mentioned on Reddit will appear here.</p>
         </div>`;
       return;
     }
-    const cards = products.map((p, i) => productRow(p, i + 1, i === 0)).join('');
-    let skeletons = '';
+    let html = products.map((p, i) => productRow(p, i + 1, i === 0, i)).join('');
     if (products.length < 5) {
       for (let i = 0; i < 5 - products.length; i++) {
-        skeletons += `<div class="product-row skeleton">
+        html += `<div class="product-row skeleton">
           <div class="product-rank">${products.length + i + 1}</div>
-          <div class="product-img"><div class="product-img-fallback" style="background: var(--surface-2); color: var(--text-muted); font-size: 16px;">?</div></div>
+          <div class="product-img"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;">?</div></div>
           <div class="product-info">
             <div class="product-row-name skeleton-text">More products coming</div>
             <div class="product-row-meta">As we scan more Reddit reviews</div>
@@ -524,20 +530,20 @@
         </div>`;
       }
     }
-    el.innerHTML = cards + skeletons;
+    el.innerHTML = html;
   }
 
-  function productRow(p, rank, isFeatured) {
+  function productRow(p, rank, isFeatured, idx) {
     const pos = p.positive_count || 0;
     const neg = p.negative_count || 0;
     const total = p.mention_count || 0;
     const neu = Math.max(0, total - pos - neg);
     const denom = pos + neu + neg;
     const pct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
-    const slug = window.slugify(p.name);
-    return `<div class="product-row${isFeatured ? ' featured' : ''}" onclick="openProduct('${slug}')">
-      <div class="product-rank">${rank}</div>
-      <div class="product-img">${productImg(p, 'product-img-fallback')}</div>
+    /* onclick → selectProduct(idx), never navigates away */
+    return `<div class="product-row${isFeatured ? ' featured' : ''}" data-idx="${idx}" onclick="selectProduct(${idx})">
+      <div class="product-rank" style="${isFeatured ? 'background:var(--accent);color:white;' : ''}">${rank}</div>
+      <div class="product-img">${window.buildProductImg(p, 'small')}</div>
       <div class="product-info">
         <div class="product-row-name"><div class="product-row-name-text">${window.escapeHtml(p.name || 'Unknown')}</div></div>
         ${denom > 0 ? `
@@ -546,39 +552,23 @@
             <span class="user-count">of ${total} mention${total === 1 ? '' : 's'}</span>
           </div>
           <div class="sentiment-bar">
-            <div class="pos" style="width: ${(pos/denom)*100}%"></div>
-            <div class="neu" style="width: ${(neu/denom)*100}%"></div>
-            <div class="neg" style="width: ${(neg/denom)*100}%"></div>
+            <div class="pos" style="width:${(pos/denom)*100}%"></div>
+            <div class="neu" style="width:${(neu/denom)*100}%"></div>
+            <div class="neg" style="width:${(neg/denom)*100}%"></div>
           </div>
-        ` : `
-          <div class="sentiment-summary">
-            <span class="user-count">${total} mention${total === 1 ? '' : 's'} · awaiting sentiment</span>
-          </div>
-        `}
+        ` : `<div class="sentiment-summary"><span class="user-count">${total} mention${total === 1 ? '' : 's'} · awaiting sentiment</span></div>`}
         <div class="product-row-meta">${p.brand ? window.escapeHtml(p.brand) : ''}${p.brand && p.product_category ? ' · ' : ''}${p.product_category ? window.escapeHtml(p.product_category) : ''}</div>
       </div>
     </div>`;
   }
 
-  function productImg(p, fallbackClass) {
-    const brand = (p.brand || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const letter = window.initial(p.name);
-    if (!brand) return `<div class="${fallbackClass}">${letter}</div>`;
-    return `<img src="https://logo.clearbit.com/${brand}.com" onerror="handleImgError(this)" data-letter="${letter}" data-fallback="${fallbackClass}" alt="">`;
-  }
-
-  function renderFeatured(product, allMentions) {
+  function renderFeatured(product, rank) {
     const panel = document.getElementById('featuredPanel');
     if (!product) {
-      panel.innerHTML = `
-        <div class="empty-featured">
-          <h3>No products yet</h3>
-          <p>Check back as the scraper finds cleansers in Reddit discussions.</p>
-        </div>`;
+      panel.innerHTML = `<div class="empty-featured"><h3>No products yet</h3><p>Check back as the scraper finds cleansers.</p></div>`;
       return;
     }
-
-    const productMentions = allMentions.filter(m => m.product_name === product.name);
+    const productMentions = allMentionsGlobal.filter(m => m.product_name === product.name);
     const pos = product.positive_count || 0;
     const neg = product.negative_count || 0;
     const total = product.mention_count || 0;
@@ -587,28 +577,24 @@
     const posPct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
     const neuPct = denom > 0 ? Math.round((neu / denom) * 100) : 0;
     const negPct = denom > 0 ? Math.round((neg / denom) * 100) : 0;
-
     const positiveQuotes = productMentions.filter(m => m.sentiment === 'positive').slice(0, 2);
     const negativeQuotes = productMentions.filter(m => m.sentiment === 'negative').slice(0, 2);
-
     const slug = window.slugify(product.name);
-    const productQuery = encodeURIComponent(product.name);
+    const q = encodeURIComponent(product.name);
 
     panel.innerHTML = `
       <div class="featured-card">
         <div class="featured-top">
           <div class="featured-top-info">
-            <div class="featured-rank-tag">Rank <strong>1</strong></div>
+            <div class="featured-rank-tag">Rank <strong>#${rank + 1}</strong></div>
             <div class="featured-name">${window.escapeHtml(product.name)}</div>
             <div class="featured-tags">
               ${product.product_category ? `<span class="featured-tag">${window.escapeHtml(product.product_category)}</span>` : ''}
               ${product.skin_type ? `<span class="featured-tag neutral">${window.escapeHtml(product.skin_type)}</span>` : '<span class="featured-tag neutral">All Skin Types</span>'}
             </div>
-            ${product.brand ? `<div class="featured-desc">By <strong style="color: var(--text);">${window.escapeHtml(product.brand)}</strong> · ${total} Reddit mention${total === 1 ? '' : 's'} analyzed</div>` : ''}
+            ${product.brand ? `<div class="featured-desc">By <strong style="color:var(--text);">${window.escapeHtml(product.brand)}</strong> · ${total} Reddit mention${total === 1 ? '' : 's'} analyzed</div>` : ''}
           </div>
-          <div class="featured-img-wrap">
-            ${productImg(product, 'featured-img-fallback')}
-          </div>
+          <div class="featured-img-wrap">${window.buildProductImg(product, 'large')}</div>
         </div>
 
         <div class="sentiment-card">
@@ -619,20 +605,20 @@
           ${denom > 0 ? `
             <div class="sentiment-row">
               <span class="sentiment-emoji">👍</span>
-              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill positive" style="width: ${posPct}%"></div></div>
+              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill positive" style="width:${posPct}%"></div></div>
               <span class="sentiment-count"><strong>${pos}</strong> (${posPct}%)</span>
             </div>
             <div class="sentiment-row">
               <span class="sentiment-emoji">😐</span>
-              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neutral" style="width: ${neuPct}%"></div></div>
+              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neutral" style="width:${neuPct}%"></div></div>
               <span class="sentiment-count"><strong>${neu}</strong> (${neuPct}%)</span>
             </div>
             <div class="sentiment-row">
               <span class="sentiment-emoji">👎</span>
-              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill negative" style="width: ${negPct}%"></div></div>
+              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill negative" style="width:${negPct}%"></div></div>
               <span class="sentiment-count"><strong>${neg}</strong> (${negPct}%)</span>
             </div>
-          ` : '<div style="color: var(--text-muted); font-size: 12px; text-align: center;">Sentiment data appearing as we scan more mentions.</div>'}
+          ` : '<div style="color:var(--text-muted);font-size:12px;text-align:center;">Sentiment data appearing as we scan more mentions.</div>'}
         </div>
 
         <div class="pros-cons-grid">
@@ -653,19 +639,19 @@
         </div>
 
         <div class="retailers-row">
-          <a href="https://www.amazon.in/s?k=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+          <a href="https://www.amazon.in/s?k=${q}" target="_blank" rel="noopener" class="retailer-card">
             <div class="retailer-name">Amazon</div>
             <div class="retailer-action">Find prices →</div>
           </a>
-          <a href="https://www.nykaa.com/search/result/?q=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+          <a href="https://www.nykaa.com/search/result/?q=${q}" target="_blank" rel="noopener" class="retailer-card">
             <div class="retailer-name">Nykaa</div>
             <div class="retailer-action">Find prices →</div>
           </a>
-          <a href="https://www.flipkart.com/search?q=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+          <a href="https://www.flipkart.com/search?q=${q}" target="_blank" rel="noopener" class="retailer-card">
             <div class="retailer-name">Flipkart</div>
             <div class="retailer-action">Find prices →</div>
           </a>
-          <a href="https://www.1mg.com/search/all?name=${productQuery}" target="_blank" rel="noopener" class="retailer-card">
+          <a href="https://www.1mg.com/search/all?name=${q}" target="_blank" rel="noopener" class="retailer-card">
             <div class="retailer-name">Tata 1mg</div>
             <div class="retailer-action">Find prices →</div>
           </a>
@@ -676,13 +662,13 @@
         </div>
 
         <p class="disclaimer">Outbound links search the retailer for this product. We don't show fake prices — exact pricing varies by retailer and time. Top pros/cons are real Reddit user quotes pulled from our database.</p>
-      </div>
-    `;
+      </div>`;
   }
 
   loadAll().catch(err => {
     console.error('Load failed:', err);
-    document.getElementById('productList').innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-dim);">Couldn't load data. Check console.</div>`;
+    document.getElementById('productList').innerHTML =
+      `<div style="text-align:center;padding:40px;color:var(--text-dim);">Couldn't load data. Check console.</div>`;
   });
 </script>
 
