@@ -1,11 +1,12 @@
 """
-IndiaRecs Scraper — Path G Edition (v2)
+IndiaRecs Scraper — Path G Edition (v2) with Automated Image Generation
 - Tighter keyword + review-intent filter (fits in 20 RPD Gemini quota)
 - Username tracking for per-user voting (RedditRecs pattern)
 - 75/25 weighted score formula (RedditRecs formula)
 - Score recomputation runs at end of every scrape
 - Strips r/ prefix from subreddit names (fixes r/r/ display bug)
 - Improved capitalization in Gemini prompt + title-case fallback
+- NEW: Automated product image generation via Gemini 2.0 Flash
 """
 
 import os
@@ -144,6 +145,37 @@ def is_valid_product(extracted):
     return True
 
 
+def generate_product_image(product_name, brand, category):
+    """Generate product image via Gemini 2.0 Flash, return URL or None."""
+    prompt = f"""Generate a professional product image for this skincare product.
+
+Product: {product_name}
+Brand: {brand}
+Category: {category}
+
+Requirements:
+- Clean, minimalist style
+- Product-focused (not lifestyle)
+- White/light background
+- 1:1 aspect ratio (square)
+- Professional branding visible
+- No people or faces
+
+Generate the image now."""
+    
+    try:
+        response = genai.ImageGenerationModel("gemini-2.0-flash").generate_images(
+            prompt=prompt,
+            number_of_images=1,
+        )
+        if response.images:
+            return response.images[0].gcs_uri
+        return None
+    except Exception as e:
+        print(f"  Image gen failed: {e}")
+        return None
+
+
 def find_or_create_product(extracted, existing_products):
     name_lower = extracted["name"].lower()
     brand_lower = extracted["brand"].lower()
@@ -169,6 +201,7 @@ def find_or_create_product(extracted, existing_products):
         "score": 0,
         "skin_type": "all",
         "price_inr": 0,
+        "image_url": None,
     }
     try:
         result = supabase.table("products").insert(new_data).execute()
@@ -283,7 +316,7 @@ def finalize_all_scores():
 
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper - Path G Edition v2")
+    print("IndiaRecs Scraper - Path G Edition v2 + Image Gen")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
@@ -313,6 +346,7 @@ def main():
 
     saved = 0
     new_products = 0
+    images_generated = 0
     skip_filter = 0
     skip_no_extract = 0
     skip_invalid = 0
@@ -357,6 +391,21 @@ def main():
 
             if save_mention(product, text, sentiment, subreddit, username):
                 saved += 1
+                
+                # Generate image on first mention if not exists
+                if is_new and not product.get("image_url"):
+                    img_url = generate_product_image(
+                        product["name"], 
+                        product["brand"], 
+                        product["product_category"]
+                    )
+                    if img_url:
+                        supabase.table("products").update({
+                            "image_url": img_url
+                        }).eq("id", product["id"]).execute()
+                        images_generated += 1
+                        print(f"      🖼️ Image generated: {img_url[:50]}...")
+                
                 print(f"    {sentiment} → {product['name']} (by u/{username})")
 
     print("\n[4/4] Done with scrape, finalizing scores...")
@@ -367,6 +416,7 @@ def main():
 
     print("=" * 60)
     print(f"  New products discovered: {new_products}")
+    print(f"  Images generated:        {images_generated}")
     print(f"  Mentions saved:          {saved}")
     print(f"  Skipped (filter):        {skip_filter}")
     print(f"  Skipped (no products):   {skip_no_extract}")
