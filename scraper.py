@@ -149,29 +149,79 @@ def is_valid_product(extracted):
         return False
     return True
 
-
 def generate_product_image(product_name, brand, category):
-    """Fetch real product image via Google Custom Search API, return URL or None."""
-    try:
-        query = f"{product_name} {brand} {category} product"
-        url = "https://www.googleapis.com/customsearch/v1"
-        params = {
-            "key": GOOGLE_API_KEY,
-            "cx": GOOGLE_CX,
-            "q": query,
-            "searchType": "image",
-            "num": 1,
-            "imgSize": "MEDIUM",
-            "safe": "active",
-        }
-        response = requests.get(url, params=params)
-        data = response.json()
-        if "items" in data and len(data["items"]) > 0:
-            return data["items"][0]["link"]
-        return None
-    except Exception as e:
-        print(f"  Image fetch failed: {e}")
-        return None
+    """
+    Fetch a real product image via Google Custom Search API.
+    Tries multiple query strategies, prefers retailer images, validates results.
+    """
+    queries = [
+        f'"{brand}" "{product_name}" product',
+        f'{product_name} {brand} site:amazon.in OR site:nykaa.com',
+        f'{product_name} {brand} product image',
+        f'{brand} {category} skincare product',
+    ]
+
+    url = "https://www.googleapis.com/customsearch/v1"
+    preferred_domains = ["amazon", "nykaa", "flipkart", "1mg", "purplle"]
+
+    for query in queries:
+        try:
+            params = {
+                "key": GOOGLE_API_KEY,
+                "cx": GOOGLE_CX,
+                "q": query,
+                "searchType": "image",
+                "num": 3,
+                "imgSize": "MEDIUM",
+                "imgType": "photo",
+                "safe": "active",
+            }
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+
+            if "items" not in data or len(data["items"]) == 0:
+                continue
+
+            best_url = None
+            for item in data["items"]:
+                img_url = item.get("link", "")
+                if not _is_valid_image_url(img_url):
+                    continue
+                display_link = item.get("displayLink", "").lower()
+                if any(domain in display_link for domain in preferred_domains):
+                    best_url = img_url
+                    break
+                if not best_url:
+                    best_url = img_url
+
+            if best_url:
+                try:
+                    head = requests.head(best_url, timeout=5, allow_redirects=True)
+                    content_type = head.headers.get("content-type", "")
+                    if head.status_code == 200 and "image" in content_type:
+                        return best_url
+                except Exception:
+                    return best_url
+
+        except Exception as e:
+            print(f"  Image query failed ({query[:40]}...): {e}")
+            continue
+
+    return None
+
+
+def _is_valid_image_url(url):
+    """Check that a URL looks like it points to a real product image."""
+    if not url or len(url) > 500:
+        return False
+    if not url.startswith("https://"):
+        return False
+    reject_patterns = ["avatar", "icon", "logo", "pixel", "tracking", "1x1", "spacer"]
+    url_lower = url.lower()
+    if any(p in url_lower for p in reject_patterns):
+        return False
+    return True
+
 
 
 def find_or_create_product(extracted, existing_products):
