@@ -49,7 +49,7 @@ VALID_CATEGORIES = {"cleanser", "moisturiser", "sunscreen", "serum", "toner", "o
 apify = ApifyClient(APIFY_TOKEN)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
-gemini = genai.GenerativeModel("gemini-2.0-flash")
+gemini = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 
 def is_genuine_review(text):
