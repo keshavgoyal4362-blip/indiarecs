@@ -577,8 +577,8 @@
     const posPct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
     const neuPct = denom > 0 ? Math.round((neu / denom) * 100) : 0;
     const negPct = denom > 0 ? Math.round((neg / denom) * 100) : 0;
-    const positiveQuotes = productMentions.filter(m => m.sentiment === 'positive').slice(0, 2);
-    const negativeQuotes = productMentions.filter(m => m.sentiment === 'negative').slice(0, 2);
+    const positiveQuotes = productMentions.filter(m => m.sentiment === 'positive' && m.comment_text && m.comment_text.length > 40 && !m.comment_text.includes('[removed]') && !m.comment_text.includes('[deleted]') && !m.comment_text.endsWith('?')).slice(0, 2);
+    const negativeQuotes = productMentions.filter(m => m.sentiment === 'negative' && m.comment_text && m.comment_text.length > 40 && !m.comment_text.includes('[removed]') && !m.comment_text.includes('[deleted]') && !m.comment_text.endsWith('?')).slice(0, 2);
     const slug = window.slugify(product.name);
     const q = encodeURIComponent(product.name);
 
