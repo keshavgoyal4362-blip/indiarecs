@@ -1,18 +1,18 @@
 """
-IndiaRecs Scraper
-- Keyword + review-intent filter
-- Username tracking for per-user voting
-- 75/25 weighted score formula
+IndiaRecs Scraper — Path G Edition (v2) with Automated Image Generation
+- Tighter keyword + review-intent filter (fits in 20 RPD Gemini quota)
+- Username tracking for per-user voting (RedditRecs pattern)
+- 75/25 weighted score formula (RedditRecs formula)
 - Score recomputation runs at end of every scrape
-- Strips r/ prefix from subreddit names
-- Real product images fetched via Google Custom Search API
+- Strips r/ prefix from subreddit names (fixes r/r/ display bug)
+- Improved capitalization in Gemini prompt + title-case fallback
+- NEW: Automated product image generation via Gemini 2.0 Flash
 """
 
 import os
 import re
 import json
 import time
-import requests
 from apify_client import ApifyClient
 from supabase import create_client
 import google.generativeai as genai
@@ -21,13 +21,10 @@ APIFY_TOKEN = os.environ["APIFY_TOKEN"]
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
-GOOGLE_CX = os.environ.get("GOOGLE_CX", "a3b61758d16584b37")
 
 SUBREDDITS = [
     "https://www.reddit.com/r/IndianSkincareAddicts/",
-    "https://www.reddit.com/r/indianbeautyhauls/",
-    "https://www.reddit.com/r/skincareaddictsindia/",
+    "https://www.reddit.com/r/SkincareAddiction/",
 ]
 
 MAX_ITEMS = 30
@@ -147,79 +144,36 @@ def is_valid_product(extracted):
         return False
     return True
 
+
 def generate_product_image(product_name, brand, category):
-    """
-    Fetch a real product image via Google Custom Search API.
-    Tries multiple query strategies, prefers retailer images, validates results.
-    """
-    queries = [
-        f'"{brand}" "{product_name}" product',
-        f'{product_name} {brand} site:amazon.in OR site:nykaa.com',
-        f'{product_name} {brand} product image',
-        f'{brand} {category} skincare product',
-    ]
+    """Generate product image via Gemini 2.0 Flash, return URL or None."""
+    prompt = f"""Generate a professional product image for this skincare product.
 
-    url = "https://www.googleapis.com/customsearch/v1"
-    preferred_domains = ["amazon", "nykaa", "flipkart", "1mg", "purplle"]
+Product: {product_name}
+Brand: {brand}
+Category: {category}
 
-    for query in queries:
-        try:
-            params = {
-                "key": GOOGLE_API_KEY,
-                "cx": GOOGLE_CX,
-                "q": query,
-                "searchType": "image",
-                "num": 3,
-                "imgSize": "MEDIUM",
-                "imgType": "photo",
-                "safe": "active",
-            }
-            response = requests.get(url, params=params, timeout=10)
-            data = response.json()
+Requirements:
+- Clean, minimalist style
+- Product-focused (not lifestyle)
+- White/light background
+- 1:1 aspect ratio (square)
+- Professional branding visible
+- No people or faces
 
-            if "items" not in data or len(data["items"]) == 0:
-                continue
-
-            best_url = None
-            for item in data["items"]:
-                img_url = item.get("link", "")
-                if not _is_valid_image_url(img_url):
-                    continue
-                display_link = item.get("displayLink", "").lower()
-                if any(domain in display_link for domain in preferred_domains):
-                    best_url = img_url
-                    break
-                if not best_url:
-                    best_url = img_url
-
-            if best_url:
-                try:
-                    head = requests.head(best_url, timeout=5, allow_redirects=True)
-                    content_type = head.headers.get("content-type", "")
-                    if head.status_code == 200 and "image" in content_type:
-                        return best_url
-                except Exception:
-                    return best_url
-
-        except Exception as e:
-            print(f"  Image query failed ({query[:40]}...): {e}")
-            continue
-
-    return None
-
-
-def _is_valid_image_url(url):
-    """Check that a URL looks like it points to a real product image."""
-    if not url or len(url) > 500:
-        return False
-    if not url.startswith("https://"):
-        return False
-    reject_patterns = ["avatar", "icon", "logo", "pixel", "tracking", "1x1", "spacer"]
-    url_lower = url.lower()
-    if any(p in url_lower for p in reject_patterns):
-        return False
-    return True
-
+Generate the image now."""
+    
+    try:
+        response = genai.ImageGenerationModel("imagen-3.0-generate-002").generate_images(
+            prompt=prompt,
+            number_of_images=1,
+        )
+        if response.images:
+            return response.images[0].gcs_uri
+        return None
+    except Exception as e:
+        print(f"  Image gen failed: {e}")
+        return None
 
 
 def find_or_create_product(extracted, existing_products):
@@ -362,7 +316,7 @@ def finalize_all_scores():
 
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper - Path G Edition v2 + Image Fetch")
+    print("IndiaRecs Scraper - Path G Edition v2 + Image Gen")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
@@ -437,12 +391,12 @@ def main():
 
             if save_mention(product, text, sentiment, subreddit, username):
                 saved += 1
-
-                # Fetch real image on first mention if not exists
+                
+                # Generate image on first mention if not exists
                 if is_new and not product.get("image_url"):
                     img_url = generate_product_image(
-                        product["name"],
-                        product["brand"],
+                        product["name"], 
+                        product["brand"], 
                         product["product_category"]
                     )
                     if img_url:
@@ -450,8 +404,8 @@ def main():
                             "image_url": img_url
                         }).eq("id", product["id"]).execute()
                         images_generated += 1
-                        print(f"      🖼️ Image fetched: {img_url[:50]}...")
-
+                        print(f"      🖼️ Image generated: {img_url[:50]}...")
+                
                 print(f"    {sentiment} → {product['name']} (by u/{username})")
 
     print("\n[4/4] Done with scrape, finalizing scores...")
@@ -462,7 +416,7 @@ def main():
 
     print("=" * 60)
     print(f"  New products discovered: {new_products}")
-    print(f"  Images fetched:          {images_generated}")
+    print(f"  Images generated:        {images_generated}")
     print(f"  Mentions saved:          {saved}")
     print(f"  Skipped (filter):        {skip_filter}")
     print(f"  Skipped (no products):   {skip_no_extract}")
