@@ -96,16 +96,18 @@
   .compare-middle { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
   .middle-header { font-size: 14px; font-weight: bold; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
-  .product-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 12px; cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
+  /* FIX 3: rank highlight via class not inline style */
+  .product-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); color: var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .rank-featured { background: var(--accent) !important; color: white !important; }
+
+  .product-row { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
   .product-row:hover { background: var(--surface-2); }
   .product-row.featured { background: rgba(255, 107, 53, 0.06); border-color: rgba(255, 107, 53, 0.4); }
   .product-row + .product-row { margin-top: 6px; }
 
-  .product-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); color: var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
-  .product-row.featured .product-rank { background: var(--accent); color: white; }
-
-  .product-img { width: 56px; height: 56px; background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-  .product-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  /* FIX 1: image bigger, on the right */
+  .product-img { width: 72px; height: 72px; background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; margin-left: auto; }
+  .product-img img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
 
   .product-info { flex: 1; min-width: 0; }
   .product-row-name { font-size: 15px; font-weight: bold; margin-bottom: 8px; line-height: 1.25; }
@@ -140,7 +142,7 @@
   .featured-desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
 
   .featured-img-wrap { width: 180px; aspect-ratio: 1; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-  .featured-img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
+  .featured-img-wrap img { width: 100%; height: 100%; object-fit: contain; border-radius: 14px; }
 
   .sentiment-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
   .sentiment-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -159,6 +161,7 @@
   .sentiment-count { font-size: 12px; color: var(--text-dim); flex-shrink: 0; min-width: 80px; text-align: right; }
   .sentiment-count strong { color: var(--text); font-weight: bold; }
 
+  /* FIX 2: pros/cons styles */
   .pros-cons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
   .pc-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .pc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; margin-bottom: 12px; }
@@ -168,7 +171,6 @@
   .pc-quote::before { content: ""; position: absolute; left: 0; top: 6px; width: 8px; height: 8px; border-radius: 50%; }
   .pc-quote.pros::before { background: var(--positive); }
   .pc-quote.cons::before { background: var(--negative); }
-  .pc-quote-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; padding-left: 16px; }
   .pc-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
   .retailers-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px; }
@@ -229,7 +231,7 @@
     .featured-img-wrap { width: 140px; align-self: flex-start; }
     .compare-middle { padding: 14px; }
     .product-row { padding: 10px; gap: 10px; }
-    .product-img { width: 48px; height: 48px; }
+    .product-img { width: 56px; height: 56px; }
     .product-row-name { font-size: 14px; }
     .pros-cons-grid { grid-template-columns: 1fr; }
   }
@@ -371,7 +373,6 @@
 </div>
 
 <script>
-  /* ── helpers ── */
   function toggleMobile() {
     document.getElementById('mobileMenu').classList.toggle('show');
     document.getElementById('mobileOverlay').classList.toggle('show');
@@ -401,7 +402,6 @@
     return cat === 'skincare' && /cleans|face\s?wash/.test(pcat);
   }
 
-  /* ── gradient palette for image fallback tiles ── */
   const GRADIENTS = [
     ['#ff6b35','#a855f7'],
     ['#06b96f','#3b82f6'],
@@ -417,15 +417,9 @@
     return 'linear-gradient(135deg,' + a + ' 0%,' + b + ' 100%)';
   }
 
-  /*
-    Image strategy:
-    - Global brands (Cetaphil, Neutrogena, etc): try Clearbit logo, fallback to gradient tile
-    - Indian brands (Minimalist, Dot & Key, etc): gradient initial tile immediately
-    Gradient tiles are consistent, always look good, never break.
-  */
   const GLOBAL_BRANDS = ['cetaphil','neutrogena','cerave','ponds','himalaya','biotique','dove','garnier','loreal','nivea','olay','lakme'];
 
-function buildProductImg(p, size) {
+  function buildProductImg(p, size) {
     const letter = initial(p.name);
     const grad = gradientForName(p.name || '');
     const brand = (p.brand || '').toLowerCase().trim();
@@ -473,10 +467,12 @@ function buildProductImg(p, size) {
     if (productsGlobal.length > 0) renderFeatured(productsGlobal[0], 0);
   }
 
-  /* ─── THE FIX: clicking a row updates the right panel, does NOT navigate ─── */
+  // FIX 3: selectProduct now also updates rank circle color via class
   window.selectProduct = function(index) {
     document.querySelectorAll('.product-row[data-idx]').forEach((row, i) => {
       row.classList.toggle('featured', i === index);
+      const rank = row.querySelector('.product-rank');
+      if (rank) rank.classList.toggle('rank-featured', i === index);
     });
     renderFeatured(productsGlobal[index], index);
   };
@@ -525,17 +521,18 @@ function buildProductImg(p, size) {
       for (let i = 0; i < 5 - products.length; i++) {
         html += `<div class="product-row skeleton">
           <div class="product-rank">${products.length + i + 1}</div>
-          <div class="product-img"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;">?</div></div>
           <div class="product-info">
             <div class="product-row-name skeleton-text">More products coming</div>
             <div class="product-row-meta">As we scan more Reddit reviews</div>
           </div>
+          <div class="product-img"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;">?</div></div>
         </div>`;
       }
     }
     el.innerHTML = html;
   }
 
+  // FIX 1: image moved to right, FIX 3: rank uses class not inline style
   function productRow(p, rank, isFeatured, idx) {
     const pos = p.positive_count || 0;
     const neg = p.negative_count || 0;
@@ -543,10 +540,8 @@ function buildProductImg(p, size) {
     const neu = Math.max(0, total - pos - neg);
     const denom = pos + neu + neg;
     const pct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
-    /* onclick → selectProduct(idx), never navigates away */
     return `<div class="product-row${isFeatured ? ' featured' : ''}" data-idx="${idx}" onclick="selectProduct(${idx})">
-      <div class="product-rank" style="${isFeatured ? 'background:var(--accent);color:white;' : ''}">${rank}</div>
-      <div class="product-img">${window.buildProductImg(p, 'small')}</div>
+      <div class="product-rank${isFeatured ? ' rank-featured' : ''}">${rank}</div>
       <div class="product-info">
         <div class="product-row-name"><div class="product-row-name-text">${window.escapeHtml(p.name || 'Unknown')}</div></div>
         ${denom > 0 ? `
@@ -562,16 +557,17 @@ function buildProductImg(p, size) {
         ` : `<div class="sentiment-summary"><span class="user-count">${total} mention${total === 1 ? '' : 's'} · awaiting sentiment</span></div>`}
         <div class="product-row-meta">${p.brand ? window.escapeHtml(p.brand) : ''}${p.brand && p.product_category ? ' · ' : ''}${p.product_category ? window.escapeHtml(p.product_category) : ''}</div>
       </div>
+      <div class="product-img">${window.buildProductImg(p, 'small')}</div>
     </div>`;
   }
 
+  // FIX 2: pros/cons from Supabase columns
   function renderFeatured(product, rank) {
     const panel = document.getElementById('featuredPanel');
     if (!product) {
       panel.innerHTML = `<div class="empty-featured"><h3>No products yet</h3><p>Check back as the scraper finds cleansers.</p></div>`;
       return;
     }
-    const productMentions = allMentionsGlobal.filter(m => m.product_name === product.name);
     const pos = product.positive_count || 0;
     const neg = product.negative_count || 0;
     const total = product.mention_count || 0;
@@ -580,8 +576,8 @@ function buildProductImg(p, size) {
     const posPct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
     const neuPct = denom > 0 ? Math.round((neu / denom) * 100) : 0;
     const negPct = denom > 0 ? Math.round((neg / denom) * 100) : 0;
-    const positiveQuotes = productMentions.filter(m => m.sentiment === 'positive' && m.comment_text && m.comment_text.length > 40 && !m.comment_text.includes('[removed]') && !m.comment_text.includes('[deleted]') && !m.comment_text.endsWith('?')).slice(0, 2);
-    const negativeQuotes = productMentions.filter(m => m.sentiment === 'negative' && m.comment_text && m.comment_text.length > 40 && !m.comment_text.includes('[removed]') && !m.comment_text.includes('[deleted]') && !m.comment_text.endsWith('?')).slice(0, 2);
+    const pros = (product.pros || '').split('\n').filter(x => x.trim());
+    const cons = (product.cons || '').split('\n').filter(x => x.trim());
     const slug = window.slugify(product.name);
     const q = encodeURIComponent(product.name);
 
@@ -626,18 +622,12 @@ function buildProductImg(p, size) {
 
         <div class="pros-cons-grid">
           <div class="pc-card">
-            <div class="pc-title pros">What users love</div>
-            ${positiveQuotes.length > 0 ? positiveQuotes.map(q => `
-              <div class="pc-quote pros">"${window.escapeHtml((q.comment_text || '').slice(0, 120))}${(q.comment_text || '').length > 120 ? '...' : ''}"</div>
-              <div class="pc-quote-meta">r/${window.escapeHtml(q.subreddit || 'reddit')} · ${window.timeAgo(q.created_at)}</div>
-            `).join('') : '<div class="pc-empty">No positive mentions yet. More appearing as we scan weekly.</div>'}
+            <div class="pc-title pros">Top Pros</div>
+            ${pros.length > 0 ? pros.map(p => `<div class="pc-quote pros">${window.escapeHtml(p)}</div>`).join('') : '<div class="pc-empty">AI summary generating soon.</div>'}
           </div>
           <div class="pc-card">
-            <div class="pc-title cons">Common concerns</div>
-            ${negativeQuotes.length > 0 ? negativeQuotes.map(q => `
-              <div class="pc-quote cons">"${window.escapeHtml((q.comment_text || '').slice(0, 120))}${(q.comment_text || '').length > 120 ? '...' : ''}"</div>
-              <div class="pc-quote-meta">r/${window.escapeHtml(q.subreddit || 'reddit')} · ${window.timeAgo(q.created_at)}</div>
-            `).join('') : '<div class="pc-empty">No negative mentions yet. Honest critiques appear here as we find them.</div>'}
+            <div class="pc-title cons">Top Cons</div>
+            ${cons.length > 0 ? cons.map(c => `<div class="pc-quote cons">${window.escapeHtml(c)}</div>`).join('') : '<div class="pc-empty">AI summary generating soon.</div>'}
           </div>
         </div>
 
@@ -664,7 +654,7 @@ function buildProductImg(p, size) {
           <a href="/skincare/cleansers/${slug}" class="cta-primary">View full analysis →</a>
         </div>
 
-        <p class="disclaimer">Outbound links search the retailer for this product. We don't show fake prices — exact pricing varies by retailer and time. Top pros/cons are real Reddit user quotes pulled from our database.</p>
+        <p class="disclaimer">Outbound links search the retailer for this product. We don't show fake prices — exact pricing varies by retailer and time. Pros/cons are AI summaries generated from real Reddit mentions.</p>
       </div>`;
   }
 
