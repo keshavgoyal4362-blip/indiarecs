@@ -1,5 +1,5 @@
 """
-IndiaRecs Scraper — Path G Edition (v2) with Automated Image Generation
+IndiaRecs Scraper — Path G Edition (v2)
 - Tighter keyword + review-intent filter (fits in 20 RPD Gemini quota)
 - Username tracking for per-user voting (RedditRecs pattern)
 - 75/25 weighted score formula (RedditRecs formula)
@@ -127,6 +127,9 @@ Respond with ONLY valid JSON. No markdown, no other text."""
                     p["brand"] = p["brand"].title()
         return result
     except Exception as e:
+        if "429" in str(e) or "quota" in str(e).lower():
+            print(f"  Gemini quota hit — stopping extraction early.")
+            raise SystemExit(1)
         print(f"  Gemini error: {e}")
         return None
 
@@ -146,43 +149,7 @@ def is_valid_product(extracted):
     return True
 
 
-def generate_product_image(product_name, brand, category):
-    """Generate product image via Gemini 2.0 Flash, return URL or None."""
-    prompt = f"""Generate a professional product image for this skincare product.
 
-Product: {product_name}
-Brand: {brand}
-Category: {category}
-
-Requirements:
-- Clean, minimalist style
-- Product-focused (not lifestyle)
-- White/light background
-- 1:1 aspect ratio (square)
-- Professional branding visible
-- No people or faces
-
-Generate the image now."""
-    
-    try:
-        # Use Gemini's image generation API
-        response = genai.GenerativeModel("gemini-2.0-flash").generate_images(
-            prompt=prompt,
-            number_of_images=1,
-            safety_settings=[
-                genai.types.SafetySetting(
-                    category=genai.types.HarmCategory.HARM_CATEGORY_UNSPECIFIED,
-                    threshold=genai.types.HarmBlockThreshold.BLOCK_NONE,
-                ),
-            ],
-        )
-        if response.images and len(response.images) > 0:
-            # Return the GCS URI of the generated image
-            return response.images[0].gcs_uri
-        return None
-    except Exception as e:
-        print(f"  Image gen failed: {e}")
-        return None
 
 
 def find_or_create_product(extracted, existing_products):
@@ -355,7 +322,6 @@ def main():
 
     saved = 0
     new_products = 0
-    images_generated = 0
     skip_filter = 0
     skip_no_extract = 0
     skip_invalid = 0
@@ -401,19 +367,7 @@ def main():
             if save_mention(product, text, sentiment, subreddit, username):
                 saved += 1
                 
-                # Generate image on first mention if not exists
-                if is_new and not product.get("image_url"):
-                    img_url = generate_product_image(
-                        product["name"], 
-                        product["brand"], 
-                        product["product_category"]
-                    )
-                    if img_url:
-                        supabase.table("products").update({
-                            "image_url": img_url
-                        }).eq("id", product["id"]).execute()
-                        images_generated += 1
-                        print(f"      🖼️ Image generated: {img_url[:50]}...")
+
                 
                 print(f"    {sentiment} → {product['name']} (by u/{username})")
 
@@ -425,7 +379,6 @@ def main():
 
     print("=" * 60)
     print(f"  New products discovered: {new_products}")
-    print(f"  Images generated:        {images_generated}")
     print(f"  Mentions saved:          {saved}")
     print(f"  Skipped (filter):        {skip_filter}")
     print(f"  Skipped (no products):   {skip_no_extract}")
