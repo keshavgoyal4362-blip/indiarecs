@@ -164,11 +164,19 @@ Requirements:
 Generate the image now."""
     
     try:
-        response = genai.ImageGenerationModel("imagen-3.0-generate-002").generate_images(
+        # Use Gemini's image generation API
+        response = genai.GenerativeModel("gemini-2.0-flash").generate_images(
             prompt=prompt,
             number_of_images=1,
+            safety_settings=[
+                genai.types.SafetySetting(
+                    category=genai.types.HarmCategory.HARM_CATEGORY_UNSPECIFIED,
+                    threshold=genai.types.HarmBlockThreshold.BLOCK_NONE,
+                ),
+            ],
         )
-        if response.images:
+        if response.images and len(response.images) > 0:
+            # Return the GCS URI of the generated image
             return response.images[0].gcs_uri
         return None
     except Exception as e:
