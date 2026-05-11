@@ -24,12 +24,13 @@ GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
 SUBREDDITS = [
     "https://www.reddit.com/r/IndianSkincareAddicts/",
-    "https://www.reddit.com/r/SkincareAddiction/",
+    "https://www.reddit.com/r/IndianBeautyDeals/",
+    "https://www.reddit.com/r/IndianMakeupAddicts/",
 ]
 
-MAX_ITEMS = 30
-MAX_POSTS_PER_SUB = 8
-MAX_COMMENTS = 10
+MAX_ITEMS = 50
+MAX_POSTS_PER_SUB = 15
+MAX_COMMENTS = 15
 
 GENERIC_TERMS = {
     "moisturizer", "moisturiser", "cleanser", "sunscreen",
@@ -340,7 +341,7 @@ def main():
         "maxItems": MAX_ITEMS,
         "maxPostCount": MAX_POSTS_PER_SUB,
         "maxComments": MAX_COMMENTS,
-        "maxCommunitiesCount": 1,
+        "maxCommunitiesCount": 3,
         "maxUserCount": 0,
         "scrollTimeout": 40,
     }
