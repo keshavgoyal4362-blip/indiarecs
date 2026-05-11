@@ -122,7 +122,7 @@
   .product-card.skeleton:hover { transform: none; border-color: var(--border); }
   .product-rank { position: absolute; top: -8px; left: 12px; background: var(--accent); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4); z-index: 2; }
   .product-img-wrap { aspect-ratio: 1.4; background: var(--surface-2); border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-  .product-img-wrap img { max-width: 70%; max-height: 70%; object-fit: contain; }
+  .product-img-wrap img { max-width: 100%; max-height: 100%; object-fit: cover; }
   .product-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: bold; color: white; background: linear-gradient(135deg, #ff6b35 0%, #a855f7 100%); }
   .product-score { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); border-radius: 8px; padding: 5px 9px; text-align: center; border: 1px solid rgba(6,185,111,0.35); }
   .product-score-num { font-size: 14px; font-weight: bold; color: var(--positive); line-height: 1; }
@@ -458,10 +458,15 @@
   }
 
   function productImg(p) {
-    const brand = (p.brand || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const letter = initial(p.name);
-    if (!brand) return `<div class="product-img-fallback">${letter}</div>`;
-    return `<img src="https://logo.clearbit.com/${brand}.com" onerror="handleImgError(this)" data-letter="${letter}" alt="${escapeHtml(p.brand || '')}">`;
+    
+    // Use Gemini-generated image if available
+    if (p.image_url) {
+      return `<img src="${p.image_url}" alt="${escapeHtml(p.brand || '')}" style="object-fit: cover; width: 100%; height: 100%;">`;
+    }
+    
+    // Fallback to letter avatar
+    return `<div class="product-img-fallback">${letter}</div>`;
   }
   function initial(n) { return (n || '?').trim().charAt(0).toUpperCase(); }
 
