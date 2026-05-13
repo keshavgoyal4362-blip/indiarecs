@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Compare Sunscreens — IndiaRecs</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Trebuchet MS', 'Lucida Sans Unicode', sans-serif !important; }
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1a1a1a;
+    --border: #222;
+    --text: #f5f5f5;
+    --text-dim: #999;
+    --text-muted: #666;
+    --accent: #ff6b35;
+    --positive: #06b96f;
+    --purple: #a855f7;
+    --pink: #ec4899;
+    --blue: #3b82f6;
+    --amber: #f59e0b;
+    --negative: #e94560;
+  }
+  html, body { overflow-x: hidden; }
+  body { background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  button { cursor: pointer; border: none; background: none; color: inherit; }
+
+  nav {
+    background: rgba(10, 10, 10, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-inner { max-width: 1500px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 4px; }
+  .logo { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: bold; margin-right: 16px; flex-shrink: 0; }
+  .logo-flag { width: 26px; height: 26px; background: linear-gradient(180deg, #ff9933 33%, #fff 33% 66%, #138808 66%); border-radius: 5px; }
+  .nav-dropdown { position: relative; }
+  .nav-dropdown-btn { padding: 7px 12px; border-radius: 7px; font-size: 12.5px; font-weight: bold; color: var(--text-dim); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .nav-dropdown-btn:hover { background: var(--surface); color: var(--text); }
+  .nav-dropdown-btn .arrow { font-size: 8px; opacity: 0.7; transition: transform 0.2s; }
+  .nav-dropdown:hover .nav-dropdown-btn .arrow { transform: rotate(180deg); }
+  .nav-dropdown:hover .nav-dropdown-btn { background: var(--surface); color: var(--text); }
+  .dropdown-menu { display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px; min-width: 220px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 200; }
+  .nav-dropdown:hover .dropdown-menu { display: block; }
+  .dropdown-item { display: block; padding: 9px 14px; border-radius: 7px; font-size: 13px; color: var(--text-dim); cursor: pointer; }
+  .dropdown-item:hover { background: var(--surface-2); color: var(--text); }
+  .dropdown-item.coming { color: var(--text-muted); cursor: default; font-size: 12px; }
+  .dropdown-item.active { color: var(--accent); font-weight: bold; }
+  .dropdown-section { padding: 6px 14px 3px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; }
+  .nav-search { flex: 1; max-width: 460px; margin: 0 12px 0 auto; position: relative; }
+  .nav-search input { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 9px 12px 9px 34px; border-radius: 9px; font-size: 12.5px; outline: none; }
+  .nav-search::before { content: "🔍"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: 0.5; }
+  .nav-link { color: var(--text-dim); font-size: 12.5px; font-weight: bold; padding: 7px 12px; border-radius: 7px; white-space: nowrap; }
+  .nav-link:hover { background: var(--surface); color: var(--text); }
+  .nav-mobile-btn { display: none; padding: 8px 12px; border-radius: 7px; font-size: 20px; color: var(--text); background: var(--surface); border: 1px solid var(--border); }
+
+  main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
+
+  .breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); margin-bottom: 18px; flex-wrap: wrap; }
+  .breadcrumbs a:hover { color: var(--text); }
+  .breadcrumbs .sep { color: var(--text-muted); }
+  .breadcrumbs .current { color: var(--text); }
+
+  .page-header { display: flex; align-items: start; justify-content: space-between; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+  .page-header h1 { font-size: 38px; line-height: 1.1; letter-spacing: -1px; font-weight: bold; margin-bottom: 10px; }
+  .page-header h1 span { color: var(--accent); }
+  .page-meta { color: var(--text-dim); font-size: 13px; }
+  .page-meta strong { color: var(--text); }
+  .page-meta-row { margin-bottom: 4px; }
+  .header-actions { display: flex; gap: 10px; flex-shrink: 0; }
+  .header-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--text); font-weight: bold; transition: all 0.15s; }
+  .header-btn:hover { border-color: var(--accent); }
+
+  .compare-grid { display: grid; grid-template-columns: 260px 460px 1fr; gap: 20px; align-items: start; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+  .card-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
+
+  .compare-left { display: flex; flex-direction: column; gap: 16px; }
+  .subreddit-list { display: flex; flex-direction: column; gap: 12px; }
+  .subreddit-item { display: flex; align-items: center; gap: 10px; }
+  .subreddit-icon { width: 32px; height: 32px; background: #ff4500; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; flex-shrink: 0; }
+  .subreddit-name { flex: 1; font-size: 13px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .subreddit-count { font-size: 13px; font-weight: bold; color: var(--text); }
+  .view-all-link { display: block; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--positive); font-weight: bold; }
+
+  .compare-middle { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .middle-header { font-size: 14px; font-weight: bold; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .product-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); color: var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+  .rank-featured { background: var(--accent) !important; color: white !important; }
+
+  .product-row { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
+  .product-row:hover { background: var(--surface-2); }
+  .product-row.featured { background: rgba(255, 107, 53, 0.06); border-color: rgba(255, 107, 53, 0.4); }
+  .product-row + .product-row { margin-top: 6px; }
+
+  .product-img { width: 72px; height: 72px; background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; margin-left: auto; }
+  .product-img img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+
+  .product-info { flex: 1; min-width: 0; }
+  .product-row-name { font-size: 15px; font-weight: bold; margin-bottom: 8px; line-height: 1.25; }
+  .product-row-name-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .sentiment-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .positive-pill { display: inline-flex; align-items: center; padding: 3px 10px; background: rgba(6, 185, 111, 0.15); color: var(--positive); border-radius: 999px; font-size: 11px; font-weight: bold; }
+  .user-count { font-size: 11px; color: var(--text-muted); }
+
+  .sentiment-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; display: flex; margin-bottom: 8px; }
+  .sentiment-bar .pos { background: var(--positive); }
+  .sentiment-bar .neu { background: var(--amber); }
+  .sentiment-bar .neg { background: var(--negative); }
+
+  .product-row-meta { font-size: 11px; color: var(--text-muted); }
+
+  .product-row.skeleton { opacity: 0.5; cursor: default; border-style: dashed; border-color: var(--border); background: var(--surface-2); }
+  .product-row.skeleton:hover { background: var(--surface-2); }
+  .skeleton-text { color: var(--text-muted); font-size: 13px; }
+
+  .compare-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
+  .featured-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+
+  .featured-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+  .featured-top-info { flex: 1; min-width: 0; }
+  .featured-rank-tag { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
+  .featured-rank-tag strong { color: var(--text); }
+  .featured-name { font-size: 30px; font-weight: bold; line-height: 1.15; margin-bottom: 16px; letter-spacing: -0.5px; }
+  .featured-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .featured-tag { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; background: rgba(6, 185, 111, 0.1); color: var(--positive); border: 1px solid rgba(6, 185, 111, 0.3); border-radius: 999px; font-size: 12px; font-weight: bold; }
+  .featured-tag.neutral { background: var(--surface-2); color: var(--text-dim); border-color: var(--border); }
+  .featured-desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+
+  .featured-img-wrap { width: 180px; aspect-ratio: 1; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .featured-img-wrap img { width: 100%; height: 100%; object-fit: contain; border-radius: 14px; }
+
+  .sentiment-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .sentiment-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .sentiment-card-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; }
+  .sentiment-card-help { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .sentiment-card-help:hover { color: var(--text); }
+
+  .sentiment-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .sentiment-row:last-child { margin-bottom: 0; }
+  .sentiment-emoji { width: 22px; flex-shrink: 0; font-size: 14px; }
+  .sentiment-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .sentiment-bar-fill { height: 100%; transition: width 0.5s; }
+  .sentiment-bar-fill.positive { background: var(--positive); }
+  .sentiment-bar-fill.neutral { background: var(--amber); }
+  .sentiment-bar-fill.negative { background: var(--negative); }
+  .sentiment-count { font-size: 12px; color: var(--text-dim); flex-shrink: 0; min-width: 80px; text-align: right; }
+  .sentiment-count strong { color: var(--text); font-weight: bold; }
+
+  .pros-cons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .pc-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .pc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; margin-bottom: 12px; }
+  .pc-title.pros { color: var(--positive); }
+  .pc-title.cons { color: var(--negative); }
+  .pc-quote { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 10px; padding-left: 16px; position: relative; }
+  .pc-quote::before { content: ""; position: absolute; left: 0; top: 6px; width: 8px; height: 8px; border-radius: 50%; }
+  .pc-quote.pros::before { background: var(--positive); }
+  .pc-quote.cons::before { background: var(--negative); }
+  .pc-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+  .retailers-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .retailer-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; transition: all 0.15s; }
+  .retailer-card:hover { border-color: var(--accent); }
+  .retailer-name { font-size: 12px; font-weight: bold; color: var(--text); margin-bottom: 4px; }
+  .retailer-action { font-size: 11px; color: var(--text-dim); }
+  .retailer-card:hover .retailer-action { color: var(--accent); }
+
+  .cta-primary-wrap { margin-bottom: 14px; }
+  .cta-primary { display: block; width: 100%; padding: 14px 18px; background: var(--positive); color: var(--bg); font-weight: bold; font-size: 14px; border-radius: 12px; transition: all 0.15s; text-align: center; }
+  .cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .disclaimer { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  .empty-featured { background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; padding: 60px 24px; text-align: center; }
+  .empty-featured h3 { font-size: 18px; margin-bottom: 10px; }
+  .empty-featured p { color: var(--text-dim); font-size: 13px; }
+
+  .mobile-menu-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 998; }
+  .mobile-menu-overlay.show { display: block; }
+  .mobile-menu { display: none; position: fixed; top: 0; right: 0; width: min(300px, 85vw); height: 100%; background: var(--surface); border-left: 1px solid var(--border); z-index: 999; padding: 20px; overflow-y: auto; }
+  .mobile-menu.show { display: block; animation: slideIn 0.25s ease-out; }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  .mobile-menu-close { position: absolute; top: 12px; right: 12px; font-size: 26px; line-height: 1; color: var(--text-dim); padding: 8px 12px; }
+  .mobile-menu h4 { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin: 18px 0 6px; padding: 0 8px; }
+  .mobile-menu h4:first-of-type { margin-top: 32px; }
+  .mobile-menu a { display: block; padding: 10px 12px; border-radius: 7px; font-size: 14px; color: var(--text-dim); }
+
+  @media (max-width: 1380px) {
+    .compare-grid { grid-template-columns: 240px 420px 1fr; gap: 16px; }
+    .featured-name { font-size: 26px; }
+    .featured-img-wrap { width: 150px; }
+  }
+  @media (max-width: 1180px) {
+    .compare-grid { grid-template-columns: 1fr 1fr; }
+    .compare-left { grid-column: 1 / -1; flex-direction: row; }
+    .compare-left .card { flex: 1; }
+    .compare-right { position: static; }
+    .page-header h1 { font-size: 32px; }
+  }
+  @media (max-width: 768px) {
+    main { padding: 16px 14px 32px; }
+    .nav-inner { padding: 10px 14px; gap: 6px; }
+    .nav-dropdown, .nav-link { display: none; }
+    .nav-mobile-btn { display: flex; align-items: center; justify-content: center; }
+    .nav-search { margin: 0 6px 0 auto; max-width: none; }
+    .logo { font-size: 16px; margin-right: 0; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .compare-left { flex-direction: column; }
+    .compare-right { order: -1; }
+    .page-header h1 { font-size: 26px; }
+    .header-actions { width: 100%; }
+    .header-btn { flex: 1; justify-content: center; }
+    .featured-name { font-size: 22px; }
+    .featured-card { padding: 20px; }
+    .featured-top { flex-direction: column-reverse; }
+    .featured-img-wrap { width: 140px; align-self: flex-start; }
+    .compare-middle { padding: 14px; }
+    .product-row { padding: 10px; gap: 10px; }
+    .product-img { width: 56px; height: 56px; }
+    .product-row-name { font-size: 14px; }
+    .pros-cons-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <div class="logo-flag"></div>
+      IndiaRecs
+    </a>
+    <div class="nav-dropdown">
+      <button class="nav-dropdown-btn">Beauty &amp; Personal Care <span class="arrow">▼</span></button>
+      <div class="dropdown-menu">
+        <div class="dropdown-section">Skincare</div>
+        <a href="/skincare/cleansers" class="dropdown-item">Cleanser</a>
+        <a class="dropdown-item">Moisturizer</a>
+        <a href="/skincare/sunscreens" class="dropdown-item active">Sunscreen</a>
+        <a class="dropdown-item">Serum</a>
+        <a class="dropdown-item">Toner</a>
+        <a class="dropdown-item">Face Wash</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-dropdown-btn">Health &amp; Wellness <span class="arrow">▼</span></button>
+      <div class="dropdown-menu">
+        <div class="dropdown-section">Coming Soon</div>
+        <a class="dropdown-item coming">Supplements</a>
+        <a class="dropdown-item coming">Vitamins</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-dropdown-btn">Tech &amp; Lifestyle <span class="arrow">▼</span></button>
+      <div class="dropdown-menu">
+        <div class="dropdown-section">Coming Soon</div>
+        <a class="dropdown-item coming">Phones</a>
+        <a class="dropdown-item coming">Laptops</a>
+      </div>
+    </div>
+    <div class="nav-search">
+      <input type="text" placeholder="Search products, brands, categories..." />
+    </div>
+    <a href="/#about" class="nav-link">About</a>
+    <a href="/#contact" class="nav-link">Contact Us</a>
+    <button class="nav-mobile-btn" id="mobileBtn">☰</button>
+  </div>
+</nav>
+
+<main>
+  <div class="breadcrumbs">
+    <a href="/">Home</a>
+    <span class="sep">›</span>
+    <a href="/">Skincare</a>
+    <span class="sep">›</span>
+    <span class="current">Sunscreens</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1>Compare <span>Sunscreens</span></h1>
+      <div class="page-meta">
+        <div class="page-meta-row">Based on <strong id="metaCount">—</strong> Reddit mention<span id="metaPlural">s</span> from Indian communities</div>
+        <div class="page-meta-row">Last updated <strong id="metaUpdated">—</strong></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn">▶ How it works</button>
+      <button class="header-btn">↗ Share</button>
+    </div>
+  </div>
+
+  <div class="compare-grid">
+    <aside class="compare-left">
+      <div class="card">
+        <div class="card-title">Subreddits Analyzed</div>
+        <div class="card-sub">We analyze real discussions from Indian Reddit communities</div>
+        <div class="subreddit-list" id="subredditList">
+          <div class="skeleton-text">Loading...</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="compare-middle">
+      <div class="middle-header">Ranked by Sentiment</div>
+      <div id="productList">
+        <div class="skeleton-text" style="text-align:center;padding:40px;">Loading products...</div>
+      </div>
+    </div>
+
+    <aside class="compare-right" id="featuredPanel">
+      <div class="empty-featured">
+        <h3>Loading featured product...</h3>
+        <p>Pulling top-ranked sunscreen from Reddit data.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div class="mobile-menu-overlay" id="mobileOverlay" onclick="toggleMobile()"></div>
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-menu-close" onclick="toggleMobile()">×</button>
+  <h4>Beauty &amp; Personal Care</h4>
+  <a href="/skincare/cleansers">Cleanser</a>
+  <a>Moisturizer</a>
+  <a href="/skincare/sunscreens">Sunscreen</a>
+  <a>Serum</a>
+  <h4>Account</h4>
+  <a href="/#about">About</a>
+  <a href="/#contact">Contact Us</a>
+</div>
+
+<script>
+  function toggleMobile() {
+    document.getElementById('mobileMenu').classList.toggle('show');
+    document.getElementById('mobileOverlay').classList.toggle('show');
+  }
+  function slugify(str) {
+    return String(str || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  function timeAgo(d) {
+    if (!d) return 'recently';
+    const ms = Date.now() - new Date(d).getTime();
+    const m = Math.floor(ms / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ago';
+    const dd = Math.floor(h / 24);
+    if (dd < 7) return dd + 'd ago';
+    return Math.floor(dd / 7) + 'w ago';
+  }
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function initial(n) { return (n || '?').trim().charAt(0).toUpperCase(); }
+
+  function isSunscreen(p) {
+    const cat = (p.category || '').toLowerCase();
+    const pcat = (p.product_category || '').toLowerCase();
+    return cat === 'skincare' && /sunscreen|spf|sun\s?block|sun\s?protect/.test(pcat);
+  }
+
+  const GRADIENTS = [
+    ['#ff6b35','#a855f7'],
+    ['#06b96f','#3b82f6'],
+    ['#f59e0b','#ec4899'],
+    ['#a855f7','#3b82f6'],
+    ['#e94560','#f59e0b'],
+    ['#06b96f','#a855f7'],
+  ];
+  function gradientForName(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+    const [a, b] = GRADIENTS[Math.abs(h) % GRADIENTS.length];
+    return 'linear-gradient(135deg,' + a + ' 0%,' + b + ' 100%)';
+  }
+
+  const GLOBAL_BRANDS = ['cetaphil','neutrogena','cerave','ponds','himalaya','biotique','dove','garnier','loreal','nivea','olay','lakme','la shield','bioderma','minimalist','fixderma'];
+
+  function buildProductImg(p, size) {
+    const letter = initial(p.name);
+    const grad = gradientForName(p.name || '');
+    const brand = (p.brand || '').toLowerCase().trim();
+    const fontSize = size === 'large' ? '64px' : '20px';
+    const fallback = '
