@@ -211,60 +211,7 @@
 </head>
 <body>
 
-<nav>
-  <div class="nav-inner">
-    <a href="/" class="logo">
-      <div class="logo-flag"></div>
-      IndiaRecs
-    </a>
-    <div class="nav-dropdown">
-      <button class="nav-dropdown-btn">Beauty &amp; Personal Care <span class="arrow">▼</span></button>
-      <div class="dropdown-menu">
-        <div class="dropdown-section">Skincare</div>
-        <a href="/skincare/cleansers" class="dropdown-item">Cleanser</a>
-        <a href="/skincare/moisturizers" class="dropdown-item">Moisturizer</a>
-        <a href="/skincare/sunscreens" class="dropdown-item">Sunscreen</a>
-        <a href="/skincare/serums" class="dropdown-item">Serum</a>
-        <a class="dropdown-item">Toner</a>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-section">Haircare</div>
-        <a class="dropdown-item coming">Shampoo · Soon</a>
-        <a class="dropdown-item coming">Conditioner · Soon</a>
-        <a class="dropdown-item coming">Hair Oil · Soon</a>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-section">Makeup</div>
-        <a class="dropdown-item coming">Lipstick · Soon</a>
-        <a class="dropdown-item coming">Foundation · Soon</a>
-      </div>
-    </div>
-    <div class="nav-dropdown">
-      <button class="nav-dropdown-btn">Health &amp; Wellness <span class="arrow">▼</span></button>
-      <div class="dropdown-menu">
-        <div class="dropdown-section">Coming Soon</div>
-        <a class="dropdown-item coming">Supplements</a>
-        <a class="dropdown-item coming">Vitamins</a>
-        <a class="dropdown-item coming">Protein Powder</a>
-        <a class="dropdown-item coming">Workout Gear</a>
-      </div>
-    </div>
-    <div class="nav-dropdown">
-      <button class="nav-dropdown-btn">Tech &amp; Lifestyle <span class="arrow">▼</span></button>
-      <div class="dropdown-menu">
-        <div class="dropdown-section">Coming Soon</div>
-        <a class="dropdown-item coming">Phones</a>
-        <a class="dropdown-item coming">Laptops</a>
-        <a class="dropdown-item coming">Headphones</a>
-        <a class="dropdown-item coming">Smartwatches</a>
-      </div>
-    </div>
-    <div class="nav-search">
-      <input id="navSearch" type="text" placeholder="Search products, brands, categories..." />
-    </div>
-    <a href="#about" class="nav-link">About</a>
-    <a href="#contact" class="nav-link">Contact Us</a>
-    <button class="nav-mobile-btn" id="mobileBtn" aria-label="Open menu">☰</button>
-  </div>
-</nav>
+<nav id="mainNav"></nav>
 
 <main>
   <section class="hero-grid">
@@ -329,42 +276,13 @@
   </section>
 </main>
 
-<div class="mobile-menu-overlay" id="mobileOverlay" onclick="toggleMobile()"></div>
-<div class="mobile-menu" id="mobileMenu">
-  <button class="mobile-menu-close" onclick="toggleMobile()">×</button>
-  <h4>Beauty &amp; Personal Care</h4>
-  <a href="/skincare/cleansers">Cleanser</a>
-  <a href="/skincare/moisturizers">Moisturizer</a>
-  <a href="/skincare/sunscreens">Sunscreen</a>
-  <a href="/skincare/serums">Serum</a>
-  <a>Toner</a>
-  <h4>Health &amp; Wellness</h4>
-  <a class="coming">Supplements · Soon</a>
-  <a class="coming">Vitamins · Soon</a>
-  <h4>Tech &amp; Lifestyle</h4>
-  <a class="coming">Phones · Soon</a>
-  <a class="coming">Laptops · Soon</a>
-  <a class="coming">Headphones · Soon</a>
-  <h4>Account</h4>
-  <a href="#about">About</a>
-  <a href="#contact">Contact Us</a>
-</div>
+<div id="mobileMenuContainer"></div>
+<script src="/shared/nav.js"></script>
 
 <script>
-  function toggleMobile() {
-    document.getElementById('mobileMenu').classList.toggle('show');
-    document.getElementById('mobileOverlay').classList.toggle('show');
-  }
   function scrollTrending(dir) {
     document.getElementById('trendingRow').scrollBy({ left: dir * 240, behavior: 'smooth' });
   }
-  function handleImgError(img) {
-    const div = document.createElement('div');
-    div.className = 'product-img-fallback';
-    div.textContent = img.dataset.letter || '?';
-    img.replaceWith(div);
-  }
-  document.getElementById('mobileBtn').addEventListener('click', toggleMobile);
 </script>
 
 <script type="module">
