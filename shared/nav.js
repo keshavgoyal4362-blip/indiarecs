@@ -8,20 +8,17 @@ const SKINCARE_LINKS = [
   { name: 'Moisturizer', href: '/skincare/moisturizers' },
   { name: 'Sunscreen', href: '/skincare/sunscreens' },
   { name: 'Serum', href: '/skincare/serums' },
-  { name: 'Toner', href: '/skincare/toners' },
-  // To add a new page later, just add a line like:
-  // { name: 'Exfoliant', href: '/skincare/exfoliants' },
+  // Toner removed — no longer a tracked category
 ];
 
-const HAIRCARE_LINKS = [
-  { name: 'Shampoo', href: null, soon: true },
-  { name: 'Conditioner', href: null, soon: true },
-  { name: 'Hair Oil', href: null, soon: true },
-];
-
-const MAKEUP_LINKS = [
-  { name: 'Lipstick', href: null, soon: true },
-  { name: 'Foundation', href: null, soon: true },
+// NEW: Fragrances split by budget tier (all coming soon for now)
+const FRAGRANCE_LINKS = [
+  { name: 'Under ₹2,000', href: null, soon: true },
+  { name: '₹2,000 – ₹5,000', href: null, soon: true },
+  { name: '₹5,000 – ₹10,000', href: null, soon: true },
+  { name: '₹10,000+', href: null, soon: true },
+  // When a page is ready, change to:
+  // { name: 'Under ₹2,000', href: '/fragrances/under-2000' },
 ];
 
 const HEALTH_LINKS = [
@@ -80,19 +77,18 @@ function renderNav() {
     + '    <div class="logo-flag"></div>'
     + '    IndiaRecs'
     + '  </a>'
+    // ─── UPDATED: "Beauty & Personal Care" now has Skincare + Fragrances only ───
     + '  <div class="nav-dropdown">'
     + '    <button class="nav-dropdown-btn">Beauty &amp; Personal Care <span class="arrow">▼</span></button>'
     + '    <div class="dropdown-menu">'
     + '      <div class="dropdown-section">Skincare</div>'
     +        buildDropdownItems(SKINCARE_LINKS)
     + '      <div class="dropdown-divider"></div>'
-    + '      <div class="dropdown-section">Haircare</div>'
-    +        buildDropdownItems(HAIRCARE_LINKS)
-    + '      <div class="dropdown-divider"></div>'
-    + '      <div class="dropdown-section">Makeup</div>'
-    +        buildDropdownItems(MAKEUP_LINKS)
+    + '      <div class="dropdown-section">Fragrances</div>'
+    +        buildDropdownItems(FRAGRANCE_LINKS)
     + '    </div>'
     + '  </div>'
+    // ─── Health & Wellness — unchanged ───
     + '  <div class="nav-dropdown">'
     + '    <button class="nav-dropdown-btn">Health &amp; Wellness <span class="arrow">▼</span></button>'
     + '    <div class="dropdown-menu">'
@@ -100,6 +96,7 @@ function renderNav() {
     +        buildDropdownItems(HEALTH_LINKS)
     + '    </div>'
     + '  </div>'
+    // ─── Tech & Lifestyle — unchanged ───
     + '  <div class="nav-dropdown">'
     + '    <button class="nav-dropdown-btn">Tech &amp; Lifestyle <span class="arrow">▼</span></button>'
     + '    <div class="dropdown-menu">'
@@ -122,10 +119,11 @@ function renderNav() {
       + '<div class="mobile-menu-overlay" id="mobileOverlay"></div>'
       + '<div class="mobile-menu" id="mobileMenu">'
       + '  <button class="mobile-menu-close" id="mobileClose">&times;</button>'
+      // ─── UPDATED: Skincare + Fragrances, removed Haircare & Makeup ───
       + '  <h4>Skincare</h4>'
       +    buildMobileLinks(SKINCARE_LINKS)
-      + '  <h4>Haircare</h4>'
-      +    buildMobileLinks(HAIRCARE_LINKS)
+      + '  <h4>Fragrances</h4>'
+      +    buildMobileLinks(FRAGRANCE_LINKS)
       + '  <h4>Health &amp; Wellness</h4>'
       +    buildMobileLinks(HEALTH_LINKS)
       + '  <h4>Tech &amp; Lifestyle</h4>'
