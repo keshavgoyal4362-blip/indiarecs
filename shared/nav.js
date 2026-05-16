@@ -8,32 +8,26 @@ const SKINCARE_LINKS = [
   { name: 'Moisturizer', href: '/skincare/moisturizers' },
   { name: 'Sunscreen', href: '/skincare/sunscreens' },
   { name: 'Serum', href: '/skincare/serums' },
-  // Toner removed — no longer a tracked category
 ];
 
-// NEW: Fragrances split by budget tier (all coming soon for now)
+const HAIRCARE_LINKS = [
+  { name: 'Shampoo', href: '/haircare/shampoos' },
+  { name: 'Conditioner', href: '/haircare/conditioners' },
+];
+
 const FRAGRANCE_LINKS = [
-  { name: 'Under ₹2,000', href: null, soon: true },
-  { name: '₹2,000 – ₹5,000', href: null, soon: true },
-  { name: '₹5,000 – ₹10,000', href: null, soon: true },
-  { name: '₹10,000+', href: null, soon: true },
-  // When a page is ready, change to:
-  // { name: 'Under ₹2,000', href: '/fragrances/under-2000' },
+  { name: 'Under ₹2,000', href: '/fragrances/under-2000' },
+  { name: '₹2,000 – ₹5,000', href: '/fragrances/2000-5000' },
+  { name: '₹5,000 – ₹10,000', href: '/fragrances/5000-10000' },
+  { name: '₹10,000+', href: '/fragrances/10000-plus' },
 ];
 
-const HEALTH_LINKS = [
-  { name: 'Supplements', href: null, soon: true },
-  { name: 'Vitamins', href: null, soon: true },
-  { name: 'Protein Powder', href: null, soon: true },
-  { name: 'Workout Gear', href: null, soon: true },
+const AUDIO_LINKS = [
+  { name: 'Wireless Earbuds', href: '/audio/wireless-earbuds' },
+  { name: 'Headphones', href: '/audio/headphones' },
+  { name: 'IEMs', href: '/audio/iems' },
 ];
 
-const TECH_LINKS = [
-  { name: 'Phones', href: null, soon: true },
-  { name: 'Laptops', href: null, soon: true },
-  { name: 'Headphones', href: null, soon: true },
-  { name: 'Smartwatches', href: null, soon: true },
-];
 
 // ═══════════════════════════════════════════════════════════════
 // EVERYTHING BELOW BUILDS THE NAV AUTOMATICALLY
@@ -77,31 +71,26 @@ function renderNav() {
     + '    <div class="logo-flag"></div>'
     + '    IndiaRecs'
     + '  </a>'
-    // ─── UPDATED: "Beauty & Personal Care" now has Skincare + Fragrances only ───
+    // ─── Beauty & Personal Care: Skincare + Hair Care + Fragrances ───
     + '  <div class="nav-dropdown">'
     + '    <button class="nav-dropdown-btn">Beauty &amp; Personal Care <span class="arrow">▼</span></button>'
     + '    <div class="dropdown-menu">'
     + '      <div class="dropdown-section">Skincare</div>'
     +        buildDropdownItems(SKINCARE_LINKS)
     + '      <div class="dropdown-divider"></div>'
+    + '      <div class="dropdown-section">Hair Care</div>'
+    +        buildDropdownItems(HAIRCARE_LINKS)
+    + '      <div class="dropdown-divider"></div>'
     + '      <div class="dropdown-section">Fragrances</div>'
     +        buildDropdownItems(FRAGRANCE_LINKS)
     + '    </div>'
     + '  </div>'
-    // ─── Health & Wellness — unchanged ───
-    + '  <div class="nav-dropdown">'
-    + '    <button class="nav-dropdown-btn">Health &amp; Wellness <span class="arrow">▼</span></button>'
-    + '    <div class="dropdown-menu">'
-    + '      <div class="dropdown-section">Coming Soon</div>'
-    +        buildDropdownItems(HEALTH_LINKS)
-    + '    </div>'
-    + '  </div>'
-    // ─── Tech & Lifestyle — unchanged ───
+    // ─── Tech & Lifestyle: Audio ───
     + '  <div class="nav-dropdown">'
     + '    <button class="nav-dropdown-btn">Tech &amp; Lifestyle <span class="arrow">▼</span></button>'
     + '    <div class="dropdown-menu">'
-    + '      <div class="dropdown-section">Coming Soon</div>'
-    +        buildDropdownItems(TECH_LINKS)
+    + '      <div class="dropdown-section">Audio</div>'
+    +        buildDropdownItems(AUDIO_LINKS)
     + '    </div>'
     + '  </div>'
     + '  <div class="nav-search">'
@@ -119,15 +108,14 @@ function renderNav() {
       + '<div class="mobile-menu-overlay" id="mobileOverlay"></div>'
       + '<div class="mobile-menu" id="mobileMenu">'
       + '  <button class="mobile-menu-close" id="mobileClose">&times;</button>'
-      // ─── UPDATED: Skincare + Fragrances, removed Haircare & Makeup ───
       + '  <h4>Skincare</h4>'
       +    buildMobileLinks(SKINCARE_LINKS)
+      + '  <h4>Hair Care</h4>'
+      +    buildMobileLinks(HAIRCARE_LINKS)
       + '  <h4>Fragrances</h4>'
       +    buildMobileLinks(FRAGRANCE_LINKS)
-      + '  <h4>Health &amp; Wellness</h4>'
-      +    buildMobileLinks(HEALTH_LINKS)
-      + '  <h4>Tech &amp; Lifestyle</h4>'
-      +    buildMobileLinks(TECH_LINKS)
+      + '  <h4>Audio</h4>'
+      +    buildMobileLinks(AUDIO_LINKS)
       + '  <h4>Account</h4>'
       + '  <a href="/#about">About</a>'
       + '  <a href="/#contact">Contact Us</a>'
