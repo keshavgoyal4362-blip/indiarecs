@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Product Analysis — IndiaRecs</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<!-- ✅ FIX: Added shared nav CSS with absolute path -->
+<link rel="stylesheet" href="/shared/nav.css"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -293,7 +295,7 @@
 <script src="/shared/nav.js"></script>
 
 <script type="module">
-  
+
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co';
@@ -531,21 +533,21 @@
         <!-- Quick Overview -->
         <div class="card">
           <div class="card-title">Quick Overview</div>
-          <div class="card-sub">&nbsp;</div>
+          <div class="card-sub"> </div>
           <div class="overview-list">${overviewHtml}</div>
         </div>
 
         <!-- Top Pros -->
         <div class="card">
           <div class="card-title" style="color:var(--pro-color)">Top Pros</div>
-          <div class="card-sub">&nbsp;</div>
+          <div class="card-sub"> </div>
           <div class="pros-cons-list">${prosHtml}</div>
         </div>
 
         <!-- Top Cons -->
         <div class="card">
           <div class="card-title" style="color:var(--con-color)">Top Cons</div>
-          <div class="card-sub">&nbsp;</div>
+          <div class="card-sub"> </div>
           <div class="pros-cons-list">${consHtml}</div>
         </div>
       </div>
