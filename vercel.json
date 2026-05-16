@@ -1,6 +1,6 @@
 {
-  "cleanUrls": true,
   "rewrites": [
-    { "source": "/product/:slug", "destination": "/product-page.html" }
+    { "source": "/product/:path*", "destination": "/product-page.html" },
+    { "source": "/:category/:page", "destination": "/:category/:page.html" }
   ]
 }
