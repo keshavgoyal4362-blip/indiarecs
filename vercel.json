@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     { "source": "/product/(.*)", "destination": "/product-page.html" }
   ]
