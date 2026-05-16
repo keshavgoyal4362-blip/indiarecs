@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/test/:slug", "destination": "/shared/product.html" }
+    { "source": "/test/:slug", "destination": "/shared/product" }
   ]
 }
