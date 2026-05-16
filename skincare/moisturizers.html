@@ -232,7 +232,6 @@
 </head>
 <body>
 
-<!-- ✅ CHANGE 1: Replaced hardcoded nav -->
 <nav id="mainNav"></nav>
 
 <main>
@@ -285,11 +284,9 @@
   </div>
 </main>
 
-<!-- ✅ CHANGE 2: Replaced hardcoded mobile menu with shared nav loader -->
 <div id="mobileMenuContainer"></div>
 <script src="/shared/nav.js"></script>
 
-<!-- ✅ CHANGE 3: Removed toggleMobile() and mobileBtn listener — nav.js handles it -->
 <script>
   function slugify(str) {
     return String(str || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -334,21 +331,27 @@
 
   const GLOBAL_BRANDS = ['cetaphil','neutrogena','cerave','ponds','himalaya','biotique','dove','garnier','loreal','nivea','olay','lakme','bioderma','minimalist','fixderma','plum','mcaffeine'];
 
+  // ✅ FIXED: Safer buildProductImg — no complex onerror quote nesting
   function buildProductImg(p, size) {
     const letter = initial(p.name);
     const grad = gradientForName(p.name || '');
     const brand = (p.brand || '').toLowerCase().trim();
     const fontSize = size === 'large' ? '64px' : '20px';
-    const fallback = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:' + fontSize + ';font-weight:bold;color:white;background:' + grad + ';">' + letter + '</div>';
+    const fallback = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:' + fontSize + ';font-weight:bold;color:white;background:' + grad + ';border-radius:10px;">' + letter + '</div>';
+
+    // Direct image URL — just hide on error, fallback gradient shows through parent bg
     if (p.image_url) {
-      return '<img src="' + p.image_url + '" style="width:100%;height:100%;object-fit:contain;padding:8px;" alt="' + escapeHtml(p.name) + '">';
+      return '<img src="' + escapeHtml(p.image_url) + '" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.style.display=\'none\'" alt="' + escapeHtml(p.name) + '">' + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:' + fontSize + ';font-weight:bold;color:white;background:' + grad + ';border-radius:10px;z-index:-1;">' + letter + '</div>';
     }
+
+    // Global brand — try Clearbit logo, hide on error
     const isGlobal = GLOBAL_BRANDS.some(b => brand.includes(b));
     if (isGlobal && brand) {
       const domain = brand.replace(/[^a-z0-9]/g, '') + '.com';
-      const escaped = fallback.replace(/"/g, '&quot;');
-      return '<img src="https://logo.clearbit.com/' + domain + '" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.parentNode.innerHTML=\'' + escaped.replace(/'/g, '&#39;') + '\';" alt="' + escapeHtml(p.name) + '">';
+      return '<img src="https://logo.clearbit.com/' + domain + '" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.style.display=\'none\'" alt="' + escapeHtml(p.name) + '">' + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:' + fontSize + ';font-weight:bold;color:white;background:' + grad + ';border-radius:10px;z-index:-1;">' + letter + '</div>';
     }
+
+    // Default: letter with gradient
     return fallback;
   }
 </script>
@@ -468,7 +471,7 @@
         ` : `<div class="sentiment-summary"><span class="user-count">${total} mention${total === 1 ? '' : 's'} · awaiting sentiment</span></div>`}
         <div class="product-row-meta">${p.brand ? window.escapeHtml(p.brand) : ''}${p.brand && p.product_category ? ' · ' : ''}${p.product_category ? window.escapeHtml(p.product_category) : ''}</div>
       </div>
-      <div class="product-img">${window.buildProductImg(p, 'small')}</div>
+      <div class="product-img" style="position:relative;">${window.buildProductImg(p, 'small')}</div>
     </div>`;
   }
 
@@ -503,7 +506,7 @@
             </div>
             ${product.brand ? `<div class="featured-desc">By <strong style="color:var(--text);">${window.escapeHtml(product.brand)}</strong> · ${total} Reddit mention${total === 1 ? '' : 's'} analyzed</div>` : ''}
           </div>
-          <div class="featured-img-wrap">${window.buildProductImg(product, 'large')}</div>
+          <div class="featured-img-wrap" style="position:relative;">${window.buildProductImg(product, 'large')}</div>
         </div>
 
         <div class="sentiment-card">
