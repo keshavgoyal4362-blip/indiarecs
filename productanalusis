@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f12;
+    --surface: #141720;
+    --surface2: #1b1f2e;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --muted: #7a8099;
+    --accent-green: #22d77f;
+    --accent-yellow: #f5c542;
+    --accent-red: #f0574f;
+    --accent-blue: #5b8df6;
+    --positive: #22d77f;
+    --neutral: #f5c542;
+    --negative: #f0574f;
+    --pro-color: #22d77f;
+    --con-color: #f0574f;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: #0a0c0f;
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-flag { font-size: 20px; }
+  .badge-beta {
+    background: rgba(91,141,246,0.18);
+    color: var(--accent-blue);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    border: 1px solid rgba(91,141,246,0.3);
+  }
+  .topbar-nav { display: flex; gap: 4px; margin-left: 12px; }
+  .topbar-nav a {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: color .2s, background .2s;
+  }
+  .topbar-nav a:hover { color: var(--text); background: var(--border); }
+  .topbar-search {
+    margin-left: auto;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    width: 220px;
+    color: var(--muted);
+    font-size: 13px;
+    height: 34px;
+  }
+  .topbar-search input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    width: 100%;
+  }
+  .topbar-search input::placeholder { color: var(--muted); }
+  .topbar-trend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .topbar-trend:hover { color: var(--text); }
+
+  /* BREADCRUMB */
+  .breadcrumb {
+    padding: 12px 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--text); }
+  .breadcrumb .sep { opacity: .4; }
+  .breadcrumb .current { color: var(--text); }
+  .bread-actions { margin-left: auto; display: flex; gap: 8px; }
+  .bread-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .bread-btn:hover { background: var(--surface2); }
+
+  /* PAGE WRAPPER */
+  .page { padding: 24px 28px 48px; max-width: 1340px; margin: 0 auto; }
+
+  /* HERO ROW */
+  .hero { display: grid; grid-template-columns: 360px 1fr 260px; gap: 16px; margin-bottom: 16px; }
+
+  .hero-image {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero-image img {
+    max-width: 170px;
+    max-height: 200px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 32px rgba(0,0,0,.5));
+  }
+
+  .hero-info {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .top-rated-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(34,215,127,0.12);
+    border: 1px solid rgba(34,215,127,0.25);
+    color: var(--accent-green);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    width: fit-content;
+  }
+  .hero-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .hero-brand { color: var(--muted); font-size: 13px; margin-top: -6px; }
+  .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .hero-desc { color: #b0b8cc; font-size: 14px; line-height: 1.65; }
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .meta-reviews {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .dot-green { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; flex-shrink: 0; }
+  .meta-source {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .reddit-dot {
+    width: 18px; height: 18px; background: #ff4500; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff; font-weight: 700;
+  }
+
+  .hero-score {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+  }
+  .score-label { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .score-number {
+    font-family: 'Sora', sans-serif;
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--accent-green);
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+  .score-sentiment { font-size: 15px; font-weight: 600; color: var(--accent-green); }
+  .score-based { font-size: 12px; color: var(--muted); }
+  .score-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-green), #7ef4b8);
+    border-radius: 3px;
+    width: 86%;
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* SECOND ROW */
+  .second-row { display: grid; grid-template-columns: 240px 300px 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .card-sub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+
+  /* SENTIMENT BREAKDOWN */
+  .sentiment-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+  .sent-item { display: flex; align-items: center; gap: 10px; }
+  .sent-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sent-label { font-size: 13px; color: var(--text); width: 56px; }
+  .sent-bar-wrap { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .sent-bar { height: 100%; border-radius: 4px; }
+  .sent-pct { font-size: 12px; color: var(--muted); width: 44px; text-align: right; white-space: nowrap; }
+  .sent-total { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* QUICK OVERVIEW */
+  .overview-list { display: flex; flex-direction: column; gap: 8px; }
+  .overview-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #c5c9d8; }
+  .ov-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+  .ov-neg { color: #f0574f; }
+  .ov-pos { color: #22d77f; }
+
+  /* PROS / CONS */
+  .pros-cons-list { display: flex; flex-direction: column; gap: 10px; }
+  .pc-item { display: flex; flex-direction: column; gap: 2px; }
+  .pc-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .pc-label.pro { color: var(--pro-color); }
+  .pc-label.con { color: var(--con-color); }
+  .pc-mentions { font-size: 11px; color: var(--muted); margin-left: 20px; }
+  .view-all {
+    font-size: 12px;
+    color: var(--accent-blue);
+    cursor: pointer;
+    margin-top: 10px;
+    display: inline-block;
+    text-decoration: none;
+  }
+  .view-all:hover { text-decoration: underline; }
+
+  /* REVIEWS ROW */
+  .reviews-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .reviews-header h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .reviews-header p { font-size: 12px; color: var(--muted); }
+  .reviews-count { font-size: 13px; color: var(--muted); }
+  .review-filters { display: flex; gap: 8px; align-items: center; }
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .filter-chip.active { background: rgba(34,215,127,0.12); border-color: rgba(34,215,127,0.3); color: var(--accent-green); }
+  .filter-chip:hover { background: var(--surface2); }
+
+  .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+
+  .review-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rv-top { display: flex; align-items: center; justify-content: space-between; }
+  .rv-source { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+  .rv-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .rv-sentiment {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .rv-sentiment.positive { background: rgba(34,215,127,0.14); color: var(--positive); }
+  .rv-sentiment.neutral { background: rgba(245,197,66,0.14); color: var(--neutral); }
+  .rv-sentiment.negative { background: rgba(240,87,79,0.14); color: var(--negative); }
+  .rv-text { font-size: 13px; color: #b8bdd0; line-height: 1.6; }
+  .rv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rv-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .rv-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+  .rv-upvotes { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  .rv-reply { font-size: 12px; color: var(--accent-blue); cursor: pointer; background: none; border: none; font-family: inherit; }
+  .rv-reply:hover { text-decoration: underline; }
+
+  /* RECOMMENDATIONS */
+  .rec-section { margin-top: 16px; }
+  .rec-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+  .rec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .rec-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .rec-card:hover { border-color: var(--border2); background: var(--surface2); }
+  .rec-img {
+    width: 52px;
+    height: 52px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .rec-info { flex: 1; min-width: 0; }
+  .rec-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 4px; }
+  .rec-reviews { font-size: 11px; color: var(--muted); }
+  .star { color: var(--accent-yellow); font-size: 11px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero { animation: fadeUp .5s ease both; }
+  .second-row { animation: fadeUp .5s .1s ease both; }
+  .reviews-section { animation: fadeUp .5s .2s ease both; }
+  .rec-section { animation: fadeUp .5s .3s ease both; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo"><span class="logo-flag">🇮🇳</span> IndiaRecs <span class="badge-beta">Beta</span></div>
+  <nav class="topbar-nav">
+    <a href="#">Beauty &amp; Personal Care ▾</a>
+    <a href="#">Tech &amp; Lifestyle ▾</a>
+  </nav>
+  <div class="topbar-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search products, brands, categories…"/>
+  </div>
+  <div class="topbar-trend">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    Trending
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="#">Home</a><span class="sep">›</span>
+  <a href="#">Beauty &amp; Personal Care</a><span class="sep">›</span>
+  <a href="#">Skincare</a><span class="sep">›</span>
+  <a href="#">Cleansers</a><span class="sep">›</span>
+  <span class="current">Cetaphil Gentle Cleanser</span>
+  <div class="bread-actions">
+    <button class="bread-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+    <button class="bread-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      Save
+    </button>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- HERO ROW -->
+  <div class="hero">
+    <!-- Product Image -->
+    <div class="hero-image">
+      <img src="https://www.cetaphil.com/on/demandware.static/-/Sites-cetaphil-master-catalog/default/dwcbf33519/2024/Gentle-Skin-Cleanser/01-Cetaphil-Gentle-Skin-Cleanser-125mL_3D-Front.png" alt="Cetaphil Gentle Cleanser" onerror="this.style.display='none'; this.parentElement.innerHTML += '<div style=\'text-align:center;color:var(--muted);font-size:13px;\'>🧴<br/>Cetaphil</div>'"/>
+    </div>
+
+    <!-- Hero Info -->
+    <div class="hero-info">
+      <div class="top-rated-chip">✦ #1 Top Rated Cleanser</div>
+      <div class="hero-title">Cetaphil Gentle Cleanser</div>
+      <div class="hero-brand">Cetaphil</div>
+      <div class="hero-tags">
+        <span class="tag">Cleanser</span>
+        <span class="tag">All Skin Types</span>
+      </div>
+      <div class="hero-desc">A gentle, non-irritating cleanser that effectively removes dirt, oil and makeup without stripping the skin's natural moisture.</div>
+      <div class="hero-meta">
+        <div class="meta-reviews">
+          <div class="dot-green"></div>
+          167 Reviews
+        </div>
+        <span style="color:var(--border2)">|</span>
+        <div class="meta-source">
+          <div class="reddit-dot">r</div>
+          r/IndianSkincareAddicts
+        </div>
+      </div>
+    </div>
+
+    <!-- Score -->
+    <div class="hero-score">
+      <div class="score-label">% Positive Score</div>
+      <div class="score-number">86%</div>
+      <div class="score-sentiment">Positive Sentiment</div>
+      <div class="score-based">Based on 167 reviews</div>
+      <div class="score-bar"><div class="score-bar-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- SECOND ROW -->
+  <div class="second-row">
+
+    <!-- Sentiment Breakdown -->
+    <div class="card">
+      <div class="card-title">Sentiment Breakdown</div>
+      <div class="card-sub">How people feel about this product</div>
+      <div class="sentiment-row">
+        <div class="sent-item">
+          <div class="sent-dot" style="background:var(--positive)"></div>
+          <div class="sent-label">Positive</div>
+          <div class="sent-bar-wrap"><div class="sent-bar" style="width:65%;background:var(--positive)"></div></div>
+          <div class="sent-pct">109 (65%)</div>
+        </div>
+        <div class="sent-item">
+          <div class="sent-dot" style="background:var(--neutral)"></div>
+          <div class="sent-label">Neutral</div>
+          <div class="sent-bar-wrap"><div class="sent-bar" style="width:31%;background:var(--neutral)"></div></div>
+          <div class="sent-pct">51 (31%)</div>
+        </div>
+        <div class="sent-item">
+          <div class="sent-dot" style="background:var(--negative)"></div>
+          <div class="sent-label">Negative</div>
+          <div class="sent-bar-wrap"><div class="sent-bar" style="width:4%;background:var(--negative)"></div></div>
+          <div class="sent-pct">7 (4%)</div>
+        </div>
+      </div>
+      <div class="sent-total">167 total reviews</div>
+    </div>
+
+    <!-- Quick Overview -->
+    <div class="card">
+      <div class="card-title">Quick Overview</div>
+      <div class="card-sub" style="margin-bottom:14px">&nbsp;</div>
+      <div class="overview-list">
+        <div class="overview-item"><span class="ov-icon ov-pos">✓</span> Gentle and non-irritating formula</div>
+        <div class="overview-item"><span class="ov-icon ov-pos">✓</span> Perfect for sensitive skin</div>
+        <div class="overview-item"><span class="ov-icon ov-pos">✓</span> Doesn't strip natural moisture</div>
+        <div class="overview-item"><span class="ov-icon ov-pos">✓</span> Great for daily use</div>
+        <div class="overview-item"><span class="ov-icon ov-neg">–</span> Some find it a bit pricey</div>
+        <div class="overview-item"><span class="ov-icon ov-neg">–</span> May not remove heavy makeup</div>
+      </div>
+    </div>
+
+    <!-- Top Pros -->
+    <div class="card">
+      <div class="card-title" style="color:var(--pro-color)">Top Pros</div>
+      <div class="card-sub">&nbsp;</div>
+      <div class="pros-cons-list">
+        <div class="pc-item">
+          <div class="pc-label pro"><span>✓</span> Gentle on sensitive skin</div>
+          <div class="pc-mentions">Mentioned in 89 reviews</div>
+        </div>
+        <div class="pc-item">
+          <div class="pc-label pro"><span>✓</span> Non-drying formula</div>
+          <div class="pc-mentions">Mentioned in 76 reviews</div>
+        </div>
+        <div class="pc-item">
+          <div class="pc-label pro"><span>✓</span> Good for daily use</div>
+          <div class="pc-mentions">Mentioned in 65 reviews</div>
+        </div>
+      </div>
+      <a class="view-all" href="#">View all pros →</a>
+    </div>
+
+    <!-- Top Cons -->
+    <div class="card">
+      <div class="card-title" style="color:var(--con-color)">Top Cons</div>
+      <div class="card-sub">&nbsp;</div>
+      <div class="pros-cons-list">
+        <div class="pc-item">
+          <div class="pc-label con"><span>✕</span> Pricey for the quantity</div>
+          <div class="pc-mentions">Mentioned in 23 reviews</div>
+        </div>
+        <div class="pc-item">
+          <div class="pc-label con"><span>✕</span> Not effective for makeup removal</div>
+          <div class="pc-mentions">Mentioned in 78 reviews</div>
+        </div>
+        <div class="pc-item">
+          <div class="pc-label con"><span>✕</span> Basic packaging</div>
+          <div class="pc-mentions">Mentioned in 12 reviews</div>
+        </div>
+      </div>
+      <a class="view-all" href="#">View all cons →</a>
+    </div>
+  </div>
+
+  <!-- REVIEWS SECTION -->
+  <div class="reviews-section">
+    <div class="reviews-header">
+      <div>
+        <h2>What People Are Saying</h2>
+        <p>Real reviews from Reddit communities</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="review-filters">
+          <button class="filter-chip active">👍 109</button>
+          <button class="filter-chip">😐 51</button>
+          <button class="filter-chip">👎 7</button>
+        </div>
+        <div class="reviews-count">167 of 167 reviews</div>
+      </div>
+    </div>
+
+    <div class="reviews-grid">
+      <!-- Review 1 -->
+      <div class="review-card">
+        <div class="rv-top">
+          <div class="rv-source">
+            <div class="rv-dot" style="background:#ff4500;"></div>
+            r/IndianSkincareAddicts · 2 months ago
+          </div>
+          <span class="rv-sentiment positive">Positive</span>
+        </div>
+        <div class="rv-text">This is my HG cleanser! Been using for 6 months now and my skin has never been better. Gentle, effective and doesn't break me out. Worth every penny!</div>
+        <div class="rv-tags">
+          <span class="rv-tag">Gentle</span>
+          <span class="rv-tag">Non-drying</span>
+          <span class="rv-tag">No breakouts</span>
+          <span class="rv-tag">Daily use</span>
+        </div>
+        <div class="rv-footer">
+          <div class="rv-upvotes">▲ 124 upvotes</div>
+          <button class="rv-reply">Reply</button>
+        </div>
+      </div>
+
+      <!-- Review 2 -->
+      <div class="review-card">
+        <div class="rv-top">
+          <div class="rv-source">
+            <div class="rv-dot" style="background:#ff4500;"></div>
+            r/IndianBeautyDeals · 1 month ago
+          </div>
+          <span class="rv-sentiment neutral">Neutral</span>
+        </div>
+        <div class="rv-text">Good cleanser but a bit overpriced compared to other options available. Works well for sensitive skin though.</div>
+        <div class="rv-tags">
+          <span class="rv-tag">Good for sensitive skin</span>
+          <span class="rv-tag">Mild</span>
+          <span class="rv-tag">Overpriced</span>
+        </div>
+        <div class="rv-footer">
+          <div class="rv-upvotes">▲ 89 upvotes</div>
+          <button class="rv-reply">Reply</button>
+        </div>
+      </div>
+
+      <!-- Review 3 -->
+      <div class="review-card">
+        <div class="rv-top">
+          <div class="rv-source">
+            <div class="rv-dot" style="background:#ff4500;"></div>
+            r/SkincareAddictionIndia · 3 weeks ago
+          </div>
+          <span class="rv-sentiment negative">Negative</span>
+        </div>
+        <div class="rv-text">Decent cleanser but doesn't remove sunscreen completely. Had to double cleanse for that.</div>
+        <div class="rv-tags">
+          <span class="rv-tag">Mild</span>
+          <span class="rv-tag">Doesn't remove sunscreen</span>
+          <span class="rv-tag">Needs double cleanse</span>
+        </div>
+        <div class="rv-footer">
+          <div class="rv-upvotes">▲ 67 upvotes</div>
+          <button class="rv-reply">Reply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="rec-section">
+    <div class="rec-title">You might also like</div>
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-img">🧴</div>
+        <div class="rec-info">
+          <div class="rec-name">Minimalist Oat Gentle Cleanser</div>
+          <div class="rec-reviews"><span class="star">★</span> 4.3 (89 reviews)</div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-img">💧</div>
+        <div class="rec-info">
+          <div class="rec-name">Simple Refreshing Face Wash</div>
+          <div class="rec-reviews"><span class="star">★</span> 4.2 (156 reviews)</div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-img">🌿</div>
+        <div class="rec-info">
+          <div class="rec-name">Dot &amp; Key Cica Face Wash</div>
+          <div class="rec-reviews"><span class="star">★</span> 4.4 (78 reviews)</div>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-img">🫧</div>
+        <div class="rec-info">
+          <div class="rec-name">Neutrogena Hydrating Cleanser</div>
+          <div class="rec-reviews"><span class="star">★</span> 4.3 (112 reviews)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Filter chip toggle
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Animate score bar on load
+  window.addEventListener('load', () => {
+    const bar = document.querySelector('.score-bar-fill');
+    if (bar) { bar.style.width = '0'; setTimeout(() => { bar.style.width = '86%'; }, 300); }
+    const sentBars = document.querySelectorAll('.sent-bar');
+    sentBars.forEach((b, i) => {
+      const w = b.style.width;
+      b.style.width = '0';
+      setTimeout(() => { b.style.width = w; b.style.transition = 'width 0.8s cubic-bezier(.4,0,.2,1)'; }, 400 + i * 100);
+    });
+  });
+</script>
+</body>
+</html>
