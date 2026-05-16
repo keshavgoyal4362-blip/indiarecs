@@ -332,23 +332,106 @@
     .rv-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
     .rv-upvotes { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
 
-    /* RECOMMENDATIONS */
-    .rec-section { margin-top: 16px; }
-    .rec-title { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 14px; }
-    .rec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .rec-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 16px; display: flex; gap: 12px; cursor: pointer; transition: border-color .2s, background .2s;
-      text-decoration: none;
-    }
-    .rec-card:hover { border-color: var(--border2); background: var(--surface2); }
-    .rec-img {
-      width: 52px; height: 52px; background: var(--surface2); border-radius: var(--radius-sm);
-      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px;
-    }
-    .rec-info { flex: 1; min-width: 0; }
-    .rec-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 4px; }
-    .rec-reviews { font-size: 11px; color: var(--muted); }
+
+/* RECOMMENDATIONS — horizontal scroll with proper images */
+.rec-section { margin-top: 16px; }
+.rec-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.rec-title { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
+.rec-scroll-hint { font-size: 12px; color: var(--muted); }
+
+.rec-wrap { position: relative; }
+.rec-grid {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  padding: 4px 4px 16px;
+  margin: -4px -4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) transparent;
+}
+.rec-grid::-webkit-scrollbar { height: 6px; }
+.rec-grid::-webkit-scrollbar-track { background: transparent; }
+.rec-grid::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+.rec-grid::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+.rec-card {
+  flex: 0 0 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color .2s, transform .2s, background .2s;
+  text-decoration: none;
+}
+.rec-card:hover { border-color: var(--accent-green); transform: translateY(-3px); background: var(--surface2); }
+
+.rec-img {
+  width: 100%;
+  aspect-ratio: 1.3;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.rec-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+.rec-img .rec-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b35, #a855f7);
+  border-radius: var(--radius-sm);
+}
+
+.rec-info { flex: 1; min-width: 0; }
+.rec-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  line-height: 1.3; margin-bottom: 4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.rec-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rec-mentions { font-size: 11px; color: var(--muted); }
+.rec-score {
+  font-size: 11px; font-weight: 700; color: var(--accent-green);
+  background: rgba(34,215,127,0.1); padding: 2px 8px; border-radius: 10px;
+}
+
+/* Scroll buttons for rec section */
+.rec-scroll-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text); font-size: 16px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 5; transition: all .15s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.rec-scroll-btn:hover { background: var(--accent-green); border-color: var(--accent-green); color: #000; }
+.rec-scroll-btn.left { left: -12px; }
+.rec-scroll-btn.right { right: -12px; }
+
+@media (max-width: 768px) {
+  .rec-card { flex: 0 0 180px; }
+  .rec-scroll-btn { display: none; }
+}
+
 
     /* RESPONSIVE */
     @media (max-width: 1200px) {
