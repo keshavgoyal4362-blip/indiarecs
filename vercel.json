@@ -1,6 +1,12 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/test/:slug", "destination": "/shared/product" }
+    { "source": "/skincare/:slug", "destination": "/shared/product" },
+    { "source": "/haircare/:slug", "destination": "/shared/product" },
+    { "source": "/makeup/:slug", "destination": "/shared/product" },
+    { "source": "/fragrances/:slug", "destination": "/shared/product" },
+    { "source": "/mens-grooming/:slug", "destination": "/shared/product" },
+    { "source": "/tech/:slug", "destination": "/shared/product" },
+    { "source": "/appliances/:slug", "destination": "/shared/product" }
   ]
 }
