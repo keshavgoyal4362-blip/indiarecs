@@ -1,20 +1,6 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    { "src": "/skincare/cleansers/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/skincare/moisturizers/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/skincare/sunscreens/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/skincare/serums/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/haircare/shampoos/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/haircare/conditioners/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/fragrances/under-2000/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/fragrances/2000-5000/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/fragrances/5000-10000/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/fragrances/10000-plus/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/audio/wireless-earbuds/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/audio/headphones/([^/]+)", "dest": "/shared/product.html" },
-    { "src": "/audio/iems/([^/]+)", "dest": "/shared/product.html" },
-    { "handle": "filesystem" }
+  "rewrites": [
+    { "source": "/test/:slug", "destination": "/shared/product.html" }
   ]
 }
