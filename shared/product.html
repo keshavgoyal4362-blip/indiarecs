@@ -378,23 +378,20 @@
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ═══════════════════════════════════════════════════════
-  // DYNAMIC PATH PARSING
-  // URL: /skincare/moisturizers/cetaphil-gentle-cleanser
-  // pathParts: ["skincare", "moisturizers", "cetaphil-gentle-cleanser"]
+  // PATH PARSING — matches vercel.json: /category/:slug
+  // URL example: /skincare/cetaphil-gentle-cleanser
+  // pathParts: ["skincare", "cetaphel-gentle-cleanser"]
   // ═══════════════════════════════════════════════════════
   const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const slug = pathParts[pathParts.length - 1] || '';
-  const categorySlug = pathParts.length >= 2 ? pathParts[pathParts.length - 2] : '';
-  const parentSlug = pathParts.length >= 3 ? pathParts[0] : '';
+  const categorySlug = pathParts[0] || '';  // "skincare"
+  const slug = pathParts[1] || '';          // "cetaphel-gentle-cleanser"
 
-  // Pretty names for breadcrumbs (converts "wireless-earbuds" → "Wireless Earbuds")
+  // Pretty names for breadcrumbs (converts "mens-grooming" → "Mens Grooming")
   const prettyName = (s) => s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const categoryDisplay = prettyName(categorySlug);
-  const parentDisplay = prettyName(parentSlug);
 
-  // Build the "back to listing" path
-  // e.g., "/skincare/moisturizers"
-  const categoryPath = '/' + pathParts.slice(0, -1).join('/');
+  // Build the "back to listing" path — e.g., "/skincare"
+  const categoryPath = '/' + categorySlug;
 
   if (!slug) {
     showError('No product specified', 'Please navigate to a product from the listing page.');
@@ -466,11 +463,11 @@
 
     // ═══════════════════════════════════════════════════════
     // UPDATE PAGE TITLE & BREADCRUMB
+    // Home › Skincare › Product Name
     // ═══════════════════════════════════════════════════════
     document.title = `${esc(product.name)} — Analysis | IndiaRecs`;
     document.getElementById('breadcrumb').innerHTML = `
       <a href="/">Home</a><span class="sep">›</span>
-      ${parentSlug ? `<a href="/${parentSlug}">${parentDisplay}</a><span class="sep">›</span>` : ''}
       <a href="${categoryPath}">${categoryDisplay}</a><span class="sep">›</span>
       <span class="current">${esc(product.name)}</span>
       <div class="bread-actions">
@@ -552,7 +549,7 @@
     }
 
     // ═══════════════════════════════════════════════════════
-    // RECOMMENDATIONS — links stay in the same category path
+    // RECOMMENDATIONS — links use /category/product-slug format
     // ═══════════════════════════════════════════════════════
     let recHtml = '';
     if (related.length > 0) {
@@ -763,7 +760,7 @@
   }
 
   function esc(str) {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    const map = { '&': '&amp;', '<': '<', '>': '>', '"': '&quot;', "'": '&#39;' };
     return String(str || '').replace(/[&<>"']/g, c => map[c]);
   }
 
@@ -794,4 +791,3 @@
 
 </body>
 </html>
-
