@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     { "source": "/skincare/cleansers/:slug", "destination": "/shared/product.html" },
     { "source": "/skincare/moisturizers/:slug", "destination": "/shared/product.html" },
