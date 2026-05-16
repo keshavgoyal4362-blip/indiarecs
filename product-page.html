@@ -681,3 +681,114 @@
         <div class="rec-wrap">
           <button class="rec-scroll-btn left" onclick="document.getElementById('recRow').scrollBy({left:-240,behavior:'smooth'})">‹</button>
           <div class="rec-grid" id="recRow">${recHtml}</div>
+          <button class="rec-scroll-btn right" onclick="document.getElementById('recRow').scrollBy({left:240,behavior:'smooth'})">›</button>
+        </div>
+      </div>
+    `;
+
+    // Animate bars after render
+    setTimeout(() => {
+      const scoreBar = document.getElementById('scoreBarFill');
+      if (scoreBar) scoreBar.style.width = posPct + '%';
+      const sp = document.getElementById('sentPos');
+      const sn = document.getElementById('sentNeu');
+      const sng = document.getElementById('sentNeg');
+      if (sp) sp.style.width = posPct + '%';
+      if (sn) sn.style.width = neuPct + '%';
+      if (sng) sng.style.width = negPct + '%';
+    }, 300);
+
+    // Filter chip functionality
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterReviews(btn.dataset.filter, mentions);
+      });
+    });
+  }
+
+  function filterReviews(filter, mentions) {
+    const grid = document.getElementById('reviewsGrid');
+    if (!grid) return;
+
+    let filtered = mentions;
+    if (filter !== 'all') {
+      filtered = mentions.filter(m => (m.sentiment || '').toLowerCase() === filter);
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="review-card" style="grid-column:1/-1;text-align:center;padding:40px;">
+        <div style="color:var(--muted);font-size:13px;">No ${filter} reviews found.</div>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.slice(0, 6).map(m => {
+      const sent = (m.sentiment || '').toLowerCase();
+      const sentClass = sent === 'positive' ? 'positive' : sent === 'negative' ? 'negative' : 'neutral';
+      const sentText = sent.charAt(0).toUpperCase() + sent.slice(1) || 'Neutral';
+      return `
+        <div class="review-card">
+          <div class="rv-top">
+            <div class="rv-source">
+              <div class="rv-dot" style="background:#ff4500;"></div>
+              r/${esc(m.subreddit || 'Reddit')} · ${timeAgo(m.created_at)}
+            </div>
+            <span class="rv-sentiment ${sentClass}">${sentText}</span>
+          </div>
+          <div class="rv-text">${esc(m.comment_text || m.title || 'No text available')}</div>
+          <div class="rv-footer">
+            <div class="rv-upvotes">${m.upvotes ? `▲ ${m.upvotes} upvotes` : ''}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function showError(title, message) {
+    document.getElementById('pageContent').innerHTML = `
+      <div class="error-state">
+        <div style="font-size:48px;">🔍</div>
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <a href="/">← Back to Home</a>
+      </div>`;
+    document.getElementById('breadcrumbProduct').textContent = 'Not Found';
+    document.title = 'Product Not Found — IndiaRecs';
+  }
+
+  // Utility: HTML escape
+  function esc(str) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(str || '').replace(/[&<>"']/g, c => map[c]);
+  }
+
+  // Utility: relative time
+  function timeAgo(d) {
+    if (!d) return 'recently';
+    const ms = Date.now() - new Date(d).getTime();
+    const m = Math.floor(ms / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ago';
+    const dd = Math.floor(h / 24);
+    if (dd < 7) return dd + 'd ago';
+    const w = Math.floor(dd / 7);
+    if (w < 5) return w + 'w ago';
+    return Math.floor(dd / 30) + 'mo ago';
+  }
+
+  // Share functionality
+  window.shareProduct = function() {
+    if (navigator.share) {
+      navigator.share({ title: document.title, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+</script>
+
+</body>
+</html>
