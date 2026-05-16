@@ -1,19 +1,15 @@
 {
   "rewrites": [
-    
     { "source": "/skincare/cleansers/:slug", "destination": "/skincare/cleansers/product.html" },
     { "source": "/skincare/moisturizers/:slug", "destination": "/skincare/moisturizers/product.html" },
     { "source": "/skincare/sunscreens/:slug", "destination": "/skincare/sunscreens/product.html" },
     { "source": "/skincare/serums/:slug", "destination": "/skincare/serums/product.html" },
-
     { "source": "/haircare/shampoos/:slug", "destination": "/haircare/shampoos/product.html" },
     { "source": "/haircare/conditioners/:slug", "destination": "/haircare/conditioners/product.html" },
-
     { "source": "/fragrances/under-2000/:slug", "destination": "/fragrances/under-2000/product.html" },
     { "source": "/fragrances/2000-5000/:slug", "destination": "/fragrances/2000-5000/product.html" },
     { "source": "/fragrances/5000-10000/:slug", "destination": "/fragrances/5000-10000/product.html" },
     { "source": "/fragrances/10000-plus/:slug", "destination": "/fragrances/10000-plus/product.html" },
-
     { "source": "/audio/wireless-earbuds/:slug", "destination": "/audio/wireless-earbuds/product.html" },
     { "source": "/audio/headphones/:slug", "destination": "/audio/headphones/product.html" },
     { "source": "/audio/iems/:slug", "destination": "/audio/iems/product.html" }
