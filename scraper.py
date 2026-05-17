@@ -1,36 +1,48 @@
 """
-IndiaRecs Scraper — Path G Edition (v2)
-- Tighter keyword + review-intent filter (fits in 20 RPD Gemini quota)
-- Username tracking for per-user voting (RedditRecs pattern)
-- 75/25 weighted score formula (RedditRecs formula)
-- Score recomputation runs at end of every scrape
-- Strips r/ prefix from subreddit names (fixes r/r/ display bug)
-- Improved capitalization in Gemini prompt + title-case fallback
-- NEW: Automated product image generation via Gemini 2.0 Flash
+IndiaRecs Scraper — Path G Edition (v3)
+
+Changes from v2:
+- REMOVED Apify dependency — now uses Reddit's free public JSON API (no auth needed)
+- IMPROVED Gemini prompt with explicit sentiment rules (fixes mislabeling)
+- Built-in rate limiting for Reddit API (~10 req/min)
+- Recursive comment tree flattening
+- All other logic (scoring, Supabase, filtering) unchanged
 """
 
 import os
 import re
 import json
 import time
-from apify_client import ApifyClient
+import requests
 from supabase import create_client
 import google.generativeai as genai
 
-APIFY_TOKEN = os.environ["APIFY_TOKEN"]
+
+# ═══════════════════════════════════════
+# CONFIGURATION
+# ═══════════════════════════════════════
+
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
-SUBREDDITS = [
-    "https://www.reddit.com/r/IndianSkincareAddicts/",
-    "https://www.reddit.com/r/IndianBeautyDeals/",
-    "https://www.reddit.com/r/IndianMakeupAddicts/",
-]
+# Subreddits to scrape (just the name, no URL or r/ prefix)
+SUBREDDITS = ["IndianSkincareAddicts", "IndianBeautyDeals", "IndianMakeupAddicts"]
 
-MAX_ITEMS = 50
+# How many posts to fetch per subreddit
 MAX_POSTS_PER_SUB = 15
-MAX_COMMENTS = 15
+
+# Max comments to fetch per post (top-level + nested)
+MAX_COMMENTS_PER_POST = 15
+
+# Delay between Reddit API requests (seconds) — keeps us under rate limit
+REDDIT_DELAY = 7  # ~8-9 requests per minute to stay safe
+
+# User-Agent header — Reddit blocks requests without one
+# Use a descriptive name so Reddit doesn't flag it as a bot
+REDDIT_HEADERS = {
+    "User-Agent": "IndiaRecsResearchBot/1.0 (skincare product research; educational project)"
+}
 
 GENERIC_TERMS = {
     "moisturizer", "moisturiser", "cleanser", "sunscreen",
@@ -42,11 +54,184 @@ GENERIC_TERMS = {
 
 VALID_CATEGORIES = {"cleanser", "moisturiser", "sunscreen", "serum", "toner", "other"}
 
-apify = ApifyClient(APIFY_TOKEN)
+
+# ═══════════════════════════════════════
+# INIT CLIENTS
+# ═══════════════════════════════════════
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
 gemini = genai.GenerativeModel("gemini-2.5-flash-lite")
 
+
+# ═══════════════════════════════════════
+# REDDIT JSON API FETCHER (replaces Apify)
+# ═══════════════════════════════════════
+
+def fetch_posts(subreddit, limit=15):
+    """
+    Fetch recent posts from a subreddit using Reddit's public JSON API.
+    Uses pagination if needed to get up to `limit` posts.
+    Returns list of post dicts with keys: title, body, author, subreddit, post_id, num_comments
+    """
+    posts = []
+    after = None  # Pagination cursor
+    per_page = min(limit, 25)  # Reddit max per request is 25 for public API
+
+    while len(posts) < limit:
+        url = f"https://www.reddit.com/r/{subreddit}/new.json?limit={per_page}"
+        if after:
+            url += f"&after={after}"
+
+        try:
+            response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
+
+            if response.status_code == 429:
+                # Rate limited — wait and retry once
+                print(f"    Rate limited on r/{subreddit}, waiting 60s...")
+                time.sleep(60)
+                response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
+
+            if response.status_code != 200:
+                print(f"    Failed to fetch r/{subreddit}: HTTP {response.status_code}")
+                break
+
+            data = response.json()
+            children = data.get("data", {}).get("children", [])
+
+            if not children:
+                break  # No more posts
+
+            for child in children:
+                post_data = child.get("data", {})
+                posts.append({
+                    "dataType": "post",
+                    "title": post_data.get("title", ""),
+                    "body": post_data.get("selftext", ""),
+                    "author": post_data.get("author", "anonymous"),
+                    "subreddit": subreddit,
+                    "post_id": post_data.get("id", ""),
+                    "num_comments": post_data.get("num_comments", 0),
+                    "permalink": post_data.get("permalink", ""),
+                })
+
+            # Update pagination cursor
+            after = data.get("data", {}).get("after")
+            if not after:
+                break  # No more pages
+
+            time.sleep(REDDIT_DELAY)
+
+        except requests.exceptions.RequestException as e:
+            print(f"    Network error fetching r/{subreddit}: {e}")
+            break
+
+    return posts[:limit]
+
+
+def fetch_comments(subreddit, post_id, max_comments=15):
+    """
+    Fetch comments for a specific post using Reddit's public JSON API.
+    Recursively flattens the comment tree.
+    Returns list of comment dicts with keys: body, author, subreddit
+    """
+    url = f"https://www.reddit.com/r/{subreddit}/comments/{post_id}.json?limit={max_comments}&depth=3"
+
+    try:
+        response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
+
+        if response.status_code == 429:
+            print(f"    Rate limited fetching comments, waiting 60s...")
+            time.sleep(60)
+            response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
+
+        if response.status_code != 200:
+            print(f"    Failed to fetch comments for {post_id}: HTTP {response.status_code}")
+            return []
+
+        data = response.json()
+
+        # Reddit returns [post_listing, comments_listing]
+        if len(data) < 2:
+            return []
+
+        comments_listing = data[1].get("data", {}).get("children", [])
+        comments = []
+        _flatten_comments(comments_listing, comments, subreddit, max_comments)
+        return comments
+
+    except requests.exceptions.RequestException as e:
+        print(f"    Network error fetching comments for {post_id}: {e}")
+        return []
+
+
+def _flatten_comments(children, results, subreddit, max_comments):
+    """
+    Recursively flatten Reddit's nested comment tree into a flat list.
+    Stops when we hit max_comments.
+    """
+    for child in children:
+        if len(results) >= max_comments:
+            return
+
+        if child.get("kind") != "t1":
+            continue  # Skip "more" placeholders and non-comment items
+
+        comment_data = child.get("data", {})
+        body = comment_data.get("body", "")
+        author = comment_data.get("author", "anonymous")
+
+        # Skip deleted/removed/automod
+        if author in ("[deleted]", "AutoModerator"):
+            continue
+
+        results.append({
+            "dataType": "comment",
+            "body": body,
+            "author": author,
+            "subreddit": subreddit,
+        })
+
+        # Recurse into replies
+        replies = comment_data.get("replies")
+        if replies and isinstance(replies, dict):
+            reply_children = replies.get("data", {}).get("children", [])
+            _flatten_comments(reply_children, results, subreddit, max_comments)
+
+
+def fetch_all_items():
+    """
+    Main fetcher — replaces the entire Apify section.
+    Returns a list of items in the same format the rest of the scraper expects.
+    """
+    all_items = []
+
+    for subreddit in SUBREDDITS:
+        print(f"  Fetching r/{subreddit}...")
+
+        posts = fetch_posts(subreddit, limit=MAX_POSTS_PER_SUB)
+        print(f"    Got {len(posts)} posts")
+
+        for post in posts:
+            # Add the post itself as an item
+            all_items.append(post)
+
+            # Only fetch comments if the post has some
+            if post["num_comments"] > 0:
+                time.sleep(REDDIT_DELAY)
+                comments = fetch_comments(subreddit, post["post_id"], MAX_COMMENTS_PER_POST)
+                all_items.extend(comments)
+                print(f"    Post '{post['title'][:40]}...' → {len(comments)} comments")
+
+        print(f"    Total items from r/{subreddit}: {len([i for i in all_items if i['subreddit'] == subreddit])}")
+        time.sleep(REDDIT_DELAY)  # Pause between subreddits
+
+    return all_items
+
+
+# ═══════════════════════════════════════
+# REVIEW FILTER (unchanged from v2)
+# ═══════════════════════════════════════
 
 def is_genuine_review(text):
     """Strict filter — must mention skincare AND show review intent."""
@@ -81,43 +266,67 @@ def is_genuine_review(text):
     return any(s in text_lower for s in review_signals)
 
 
+# ═══════════════════════════════════════
+# GEMINI EXTRACTION (improved prompt)
+# ═══════════════════════════════════════
+
 def extract_products_with_gemini(text):
-    prompt = f"""Analyze this Reddit comment about skincare. Extract any specific BRANDED products mentioned and the user's sentiment about each.
+    """
+    Send review text to Gemini for product extraction + sentiment analysis.
+    IMPROVED: Explicit sentiment rules with edge-case examples to fix mislabeling.
+    """
+    prompt = f"""You are a sentiment analysis expert for Indian skincare product reviews on Reddit.
+
+Analyze this comment and extract specific BRANDED products the user has PERSONALLY USED, along with their sentiment.
 
 Comment: {text}
 
-STRICT RULES:
-- Only extract specific branded products (e.g., "Minimalist Niacinamide 10%", "Cetaphil Gentle Cleanser", "Cosrx Snail Mucin")
-- Brand alone is OK only if category is clear from context (e.g., "Cetaphil cleanser")
-- DO NOT extract generic terms ("moisturizer", "sunscreen", "vitamin c") without a brand
-- DO NOT extract products mentioned only in questions
+PRODUCT EXTRACTION RULES:
+- Only extract products with a clear brand name (e.g., "Minimalist Niacinamide 10%", "Cetaphil Gentle Cleanser")
+- Brand alone is OK if category is clear from context (e.g., "Cetaphil cleanser")
+- DO NOT extract generic terms without a brand ("moisturizer", "sunscreen", "vitamin c")
+- DO NOT extract products only mentioned in questions ("has anyone tried X?")
 - DO NOT extract products the user has NOT personally used
-- USE PROPER CAPITALIZATION: "The Ordinary Salicylic Acid 2%", "Joy pH 5.5 Cleanser", "Cetaphil Gentle Cleanser"
-- DO NOT return all-lowercase product names
-- Be conservative — when in doubt, leave it out
+- USE PROPER CAPITALIZATION for brand and product names
 
-Return JSON exactly:
+SENTIMENT RULES — Base sentiment ONLY on the user's personal experience:
+- POSITIVE: User likes it, it worked for them, they recommend it, repurchased it, call it "holy grail", "game changer", "love it"
+- NEGATIVE: User says it broke them out, didn't work, caused irritation, they stopped using it, switched away from it, regret buying it, "wouldn't recommend"
+- NEUTRAL: User mentions using it but expresses no clear opinion either way
+
+KEY DISTINCTIONS:
+- "I switched FROM X to Y" → X is NEGATIVE (they left it), Y is POSITIVE (they chose it)
+- "People love X but it didn't work for me" → NEGATIVE (user's own experience wins)
+- "X is good but broke me out" → NEGATIVE (skin reaction overrides general praise)
+- "I used X, it was okay" → NEUTRAL
+- "X worked initially but stopped working" → NEGATIVE
+- "I stopped using X" without reason → NEGATIVE (they chose to stop)
+- "X was my holy grail but they changed the formula" → NEGATIVE (current experience)
+
+Return ONLY this exact JSON structure:
 {{
   "products": [
     {{
-      "name": "Full product name with brand (proper capitalization)",
-      "brand": "Brand name only (proper capitalization)",
+      "name": "Full product name with brand (Proper Capitalization)",
+      "brand": "Brand Name",
       "category": "cleanser" or "moisturiser" or "sunscreen" or "serum" or "toner" or "other",
       "sentiment": "positive" or "negative" or "neutral"
     }}
   ]
 }}
 
-If no specific branded products are mentioned: {{"products": []}}
+If no specific branded products the user personally used are found: {{"products": []}}
 
-Respond with ONLY valid JSON. No markdown, no other text."""
+Respond with ONLY valid JSON. No markdown, no explanation."""
+
     try:
         response = gemini.generate_content(prompt)
-        time.sleep(5)
+        time.sleep(5)  # Respect Gemini rate limit
         clean = response.text.strip()
         clean = re.sub(r"^```(?:json)?", "", clean).strip()
         clean = re.sub(r"```$", "", clean).strip()
         result = json.loads(clean)
+
         # Safety net: title-case any product names that came back all-lowercase
         if result and "products" in result:
             for p in result["products"]:
@@ -126,6 +335,7 @@ Respond with ONLY valid JSON. No markdown, no other text."""
                 if p.get("brand") and p["brand"] == p["brand"].lower():
                     p["brand"] = p["brand"].title()
         return result
+
     except Exception as e:
         if "429" in str(e) or "quota" in str(e).lower():
             print(f"  Gemini quota hit — stopping extraction early.")
@@ -133,6 +343,10 @@ Respond with ONLY valid JSON. No markdown, no other text."""
         print(f"  Gemini error: {e}")
         return None
 
+
+# ═══════════════════════════════════════
+# PRODUCT VALIDATION & DB OPS (unchanged)
+# ═══════════════════════════════════════
 
 def is_valid_product(extracted):
     name = (extracted.get("name") or "").strip()
@@ -147,9 +361,6 @@ def is_valid_product(extracted):
     if category not in VALID_CATEGORIES:
         return False
     return True
-
-
-
 
 
 def find_or_create_product(extracted, existing_products):
@@ -190,7 +401,7 @@ def find_or_create_product(extracted, existing_products):
 
 
 def save_mention(product, comment_text, sentiment, subreddit, username):
-    """Just inserts into mentions table — score recompute happens later in finalize_all_scores()."""
+    """Insert into mentions table — score recompute happens later."""
     try:
         supabase.table("mentions").insert({
             "product_name": product["name"],
@@ -204,6 +415,10 @@ def save_mention(product, comment_text, sentiment, subreddit, username):
         print(f"  Save failed: {e}")
         return False
 
+
+# ═══════════════════════════════════════
+# SCORE RECOMPUTATION (unchanged)
+# ═══════════════════════════════════════
 
 def finalize_all_scores():
     """
@@ -290,36 +505,24 @@ def finalize_all_scores():
     print(f"  Recomputed scores for {updated} products (max_positive={max_positive})")
 
 
+# ═══════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════
+
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper - Path G Edition v2 + Image Gen")
+    print("IndiaRecs Scraper — Path G Edition v3 (Free Reddit JSON)")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
     existing_products = supabase.table("products").select("*").execute().data
     print(f"  {len(existing_products)} products in DB")
 
-    print("\n[2/4] Starting Apify Reddit scraper...")
-    run_input = {
-        "startUrls": [{"url": url} for url in SUBREDDITS],
-        "skipComments": False,
-        "skipUserPosts": False,
-        "skipCommunity": False,
-        "maxItems": MAX_ITEMS,
-        "maxPostCount": MAX_POSTS_PER_SUB,
-        "maxComments": MAX_COMMENTS,
-        "maxCommunitiesCount": 3,
-        "maxUserCount": 0,
-        "scrollTimeout": 40,
-    }
-    run = apify.actor("trudax/reddit-scraper-lite").call(run_input=run_input)
-    print(f"  Apify run done: {run['id']}")
-    print(f"  Cost: ${run.get('usageTotalUsd', 0):.3f}")
+    print("\n[2/4] Fetching from Reddit (public JSON API, no auth)...")
+    items = fetch_all_items()
+    print(f"\n  Total items fetched: {len(items)}")
 
     print("\n[3/4] Processing items...")
-    items = list(apify.dataset(run["defaultDatasetId"]).iterate_items())
-    print(f"  Got {len(items)} items")
-
     saved = 0
     new_products = 0
     skip_filter = 0
@@ -327,8 +530,7 @@ def main():
     skip_invalid = 0
 
     for item in items:
-        if item.get("dataType") not in ("post", "comment"):
-            continue
+        # Build the text to analyze
         text = item.get("body", "") or ""
         if item.get("dataType") == "post":
             text = (item.get("title", "") or "") + " " + text
@@ -337,11 +539,8 @@ def main():
             skip_filter += 1
             continue
 
-        username = item.get("username") or item.get("author") or "anonymous"
-        subreddit = item.get("communityName", "unknown") or "unknown"
-        # Strip r/ prefix if Apify includes it (fixes r/r/ display bug)
-        if subreddit.startswith("r/"):
-            subreddit = subreddit[2:]
+        username = item.get("author") or "anonymous"
+        subreddit = item.get("subreddit", "unknown") or "unknown"
 
         result = extract_products_with_gemini(text)
         if not result or not result.get("products"):
@@ -366,9 +565,6 @@ def main():
 
             if save_mention(product, text, sentiment, subreddit, username):
                 saved += 1
-                
-
-                
                 print(f"    {sentiment} → {product['name']} (by u/{username})")
 
     print("\n[4/4] Done with scrape, finalizing scores...")
@@ -377,7 +573,7 @@ def main():
     except Exception as e:
         print(f"  Score finalize failed: {e}")
 
-    print("=" * 60)
+    print("\n" + "=" * 60)
     print(f"  New products discovered: {new_products}")
     print(f"  Mentions saved:          {saved}")
     print(f"  Skipped (filter):        {skip_filter}")
