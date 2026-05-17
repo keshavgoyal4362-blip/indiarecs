@@ -334,10 +334,9 @@ Respond with ONLY valid JSON. No markdown, no explanation."""
     except Exception as e:
         if "429" in str(e) or "quota" in str(e).lower():
             print(f"  Gemini quota hit — stopping extraction early.")
-            return "QUOTA_HIT"  # Signal to main loop to stop, but don't crash
+            return "QUOTA_HIT"  # Signal to main loop — don't crash
         print(f"  Gemini error: {e}")
         return None
-
 
 
 # ═══════════════════════════════════════
@@ -547,7 +546,6 @@ def main():
         if not result or not result.get("products"):
             skip_no_extract += 1
             continue
-
 
         for extracted in result["products"]:
             if not is_valid_product(extracted):
