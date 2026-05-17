@@ -1,12 +1,14 @@
 """
-IndiaRecs Scraper — Path G Edition (v3)
+IndiaRecs Scraper — Path G Edition (v4)
+========================================
 
-Changes from v2:
-- REMOVED Apify dependency — now uses Reddit's free public JSON API (no auth needed)
-- IMPROVED Gemini prompt with explicit sentiment rules (fixes mislabeling)
-- Built-in rate limiting for Reddit API (~10 req/min)
-- Recursive comment tree flattening
-- All other logic (scoring, Supabase, filtering) unchanged
+Changes from v3:
+- REPLACED Reddit public JSON (blocked from cloud IPs) with Pullpush.io API
+- Pullpush.io = free Reddit archive, no auth, works from GitHub Actions
+- Fetches COMMENTS directly with review-focused keyword search (much better hit rate)
+- Also fetches posts with selftext for additional coverage
+- Fixed google.generativeai deprecation warning → uses google-genai package
+- All scoring/Supabase logic unchanged
 """
 
 import os
@@ -15,8 +17,11 @@ import json
 import time
 import requests
 from supabase import create_client
-import google.generativeai as genai
 
+# ═══════════════════════════════════════
+# GEMINI SETUP — using new google-genai package
+# ═══════════════════════════════════════
+from google import genai
 
 # ═══════════════════════════════════════
 # CONFIGURATION
@@ -26,23 +31,27 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
-# Subreddits to scrape (just the name, no URL or r/ prefix)
+# Subreddits to scrape
 SUBREDDITS = ["IndianSkincareAddicts", "IndianBeautyDeals", "IndianMakeupAddicts"]
 
-# How many posts to fetch per subreddit
-MAX_POSTS_PER_SUB = 15
+# Pullpush.io settings
+PULLPUSH_COMMENT_URL = "https://api.pullpush.io/reddit/search/comment/"
+PULLPUSH_POST_URL = "https://api.pullpush.io/reddit/search/submission/"
 
-# Max comments to fetch per post (top-level + nested)
-MAX_COMMENTS_PER_POST = 15
+# How many items to fetch per request (max 100 for Pullpush)
+COMMENTS_PER_SUB = 100
+POSTS_PER_SUB = 25
 
-# Delay between Reddit API requests (seconds) — keeps us under rate limit
-REDDIT_DELAY = 7  # ~8-9 requests per minute to stay safe
+# Review-focused search queries — these find comments with actual product opinions
+REVIEW_QUERIES = [
+    "recommend OR recommended OR holy grail",
+    "been using OR currently using OR switched to",
+    "love this OR hate this OR broke me out",
+    "review OR repurchase OR game changer",
+]
 
-# User-Agent header — Reddit blocks requests without one
-# Use a descriptive name so Reddit doesn't flag it as a bot
-REDDIT_HEADERS = {
-    "User-Agent": "IndiaRecsResearchBot/1.0 (skincare product research; educational project)"
-}
+# Delay between API requests (seconds)
+API_DELAY = 3
 
 GENERIC_TERMS = {
     "moisturizer", "moisturiser", "cleanser", "sunscreen",
@@ -60,177 +69,159 @@ VALID_CATEGORIES = {"cleanser", "moisturiser", "sunscreen", "serum", "toner", "o
 # ═══════════════════════════════════════
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-genai.configure(api_key=GEMINI_API_KEY)
-gemini = genai.GenerativeModel("gemini-2.5-flash-lite")
+
+# New google-genai client
+gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+GEMINI_MODEL = "gemini-2.5-flash-lite"
 
 
 # ═══════════════════════════════════════
-# REDDIT JSON API FETCHER (replaces Apify)
+# PULLPUSH.IO FETCHER (replaces Reddit JSON)
 # ═══════════════════════════════════════
 
-def fetch_posts(subreddit, limit=15):
+def fetch_comments_pullpush(subreddit, query, size=100):
     """
-    Fetch recent posts from a subreddit using Reddit's public JSON API.
-    Uses pagination if needed to get up to `limit` posts.
-    Returns list of post dicts with keys: title, body, author, subreddit, post_id, num_comments
+    Fetch comments from Pullpush.io (Reddit archive API).
+    No auth needed, works from any IP including GitHub Actions.
     """
-    posts = []
-    after = None  # Pagination cursor
-    per_page = min(limit, 25)  # Reddit max per request is 25 for public API
-
-    while len(posts) < limit:
-        url = f"https://www.reddit.com/r/{subreddit}/new.json?limit={per_page}"
-        if after:
-            url += f"&after={after}"
-
-        try:
-            response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
-
-            if response.status_code == 429:
-                # Rate limited — wait and retry once
-                print(f"    Rate limited on r/{subreddit}, waiting 60s...")
-                time.sleep(60)
-                response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
-
-            if response.status_code != 200:
-                print(f"    Failed to fetch r/{subreddit}: HTTP {response.status_code}")
-                break
-
-            data = response.json()
-            children = data.get("data", {}).get("children", [])
-
-            if not children:
-                break  # No more posts
-
-            for child in children:
-                post_data = child.get("data", {})
-                posts.append({
-                    "dataType": "post",
-                    "title": post_data.get("title", ""),
-                    "body": post_data.get("selftext", ""),
-                    "author": post_data.get("author", "anonymous"),
-                    "subreddit": subreddit,
-                    "post_id": post_data.get("id", ""),
-                    "num_comments": post_data.get("num_comments", 0),
-                    "permalink": post_data.get("permalink", ""),
-                })
-
-            # Update pagination cursor
-            after = data.get("data", {}).get("after")
-            if not after:
-                break  # No more pages
-
-            time.sleep(REDDIT_DELAY)
-
-        except requests.exceptions.RequestException as e:
-            print(f"    Network error fetching r/{subreddit}: {e}")
-            break
-
-    return posts[:limit]
-
-
-def fetch_comments(subreddit, post_id, max_comments=15):
-    """
-    Fetch comments for a specific post using Reddit's public JSON API.
-    Recursively flattens the comment tree.
-    Returns list of comment dicts with keys: body, author, subreddit
-    """
-    url = f"https://www.reddit.com/r/{subreddit}/comments/{post_id}.json?limit={max_comments}&depth=3"
+    params = {
+        "subreddit": subreddit,
+        "q": query,
+        "size": size,
+        "sort": "desc",
+        "sort_type": "created_utc",
+    }
 
     try:
-        response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
-
-        if response.status_code == 429:
-            print(f"    Rate limited fetching comments, waiting 60s...")
-            time.sleep(60)
-            response = requests.get(url, headers=REDDIT_HEADERS, timeout=15)
+        response = requests.get(PULLPUSH_COMMENT_URL, params=params, timeout=30)
 
         if response.status_code != 200:
-            print(f"    Failed to fetch comments for {post_id}: HTTP {response.status_code}")
+            print(f"    Pullpush comment fetch failed: HTTP {response.status_code}")
             return []
 
         data = response.json()
+        comments = data.get("data", [])
 
-        # Reddit returns [post_listing, comments_listing]
-        if len(data) < 2:
-            return []
+        results = []
+        for c in comments:
+            author = c.get("author", "anonymous")
+            body = c.get("body", "")
 
-        comments_listing = data[1].get("data", {}).get("children", [])
-        comments = []
-        _flatten_comments(comments_listing, comments, subreddit, max_comments)
-        return comments
+            # Skip deleted/removed/automod
+            if author in ("[deleted]", "AutoModerator", "[removed]"):
+                continue
+            if body in ("[deleted]", "[removed]", ""):
+                continue
+
+            results.append({
+                "dataType": "comment",
+                "body": body,
+                "author": author,
+                "subreddit": subreddit,
+            })
+
+        return results
 
     except requests.exceptions.RequestException as e:
-        print(f"    Network error fetching comments for {post_id}: {e}")
+        print(f"    Network error (comments): {e}")
         return []
 
 
-def _flatten_comments(children, results, subreddit, max_comments):
+def fetch_posts_pullpush(subreddit, size=25):
     """
-    Recursively flatten Reddit's nested comment tree into a flat list.
-    Stops when we hit max_comments.
+    Fetch recent posts with selftext from Pullpush.io.
+    Supplements comment data with post bodies that contain reviews.
     """
-    for child in children:
-        if len(results) >= max_comments:
-            return
+    params = {
+        "subreddit": subreddit,
+        "size": size,
+        "sort": "desc",
+        "sort_type": "created_utc",
+        "selftext:not": "[removed]",  # Skip removed posts
+    }
 
-        if child.get("kind") != "t1":
-            continue  # Skip "more" placeholders and non-comment items
+    try:
+        response = requests.get(PULLPUSH_POST_URL, params=params, timeout=30)
 
-        comment_data = child.get("data", {})
-        body = comment_data.get("body", "")
-        author = comment_data.get("author", "anonymous")
+        if response.status_code != 200:
+            print(f"    Pullpush post fetch failed: HTTP {response.status_code}")
+            return []
 
-        # Skip deleted/removed/automod
-        if author in ("[deleted]", "AutoModerator"):
-            continue
+        data = response.json()
+        posts = data.get("data", [])
 
-        results.append({
-            "dataType": "comment",
-            "body": body,
-            "author": author,
-            "subreddit": subreddit,
-        })
+        results = []
+        for p in posts:
+            author = p.get("author", "anonymous")
+            selftext = p.get("selftext", "")
+            title = p.get("title", "")
 
-        # Recurse into replies
-        replies = comment_data.get("replies")
-        if replies and isinstance(replies, dict):
-            reply_children = replies.get("data", {}).get("children", [])
-            _flatten_comments(reply_children, results, subreddit, max_comments)
+            # Skip removed/deleted
+            if author in ("[deleted]", "AutoModerator"):
+                continue
+            if selftext in ("[deleted]", "[removed]", ""):
+                continue
+
+            results.append({
+                "dataType": "post",
+                "title": title,
+                "body": selftext,
+                "author": author,
+                "subreddit": subreddit,
+            })
+
+        return results
+
+    except requests.exceptions.RequestException as e:
+        print(f"    Network error (posts): {e}")
+        return []
 
 
 def fetch_all_items():
     """
-    Main fetcher — replaces the entire Apify section.
-    Returns a list of items in the same format the rest of the scraper expects.
+    Main fetcher — uses Pullpush.io to get review-rich comments + posts.
+    Returns list of items for processing.
     """
     all_items = []
+    seen_bodies = set()  # Deduplicate across queries
 
     for subreddit in SUBREDDITS:
         print(f"  Fetching r/{subreddit}...")
+        sub_count = 0
 
-        posts = fetch_posts(subreddit, limit=MAX_POSTS_PER_SUB)
-        print(f"    Got {len(posts)} posts")
+        # Fetch comments with review-focused queries
+        for query in REVIEW_QUERIES:
+            time.sleep(API_DELAY)
+            comments = fetch_comments_pullpush(subreddit, query, COMMENTS_PER_SUB)
 
-        for post in posts:
-            # Add the post itself as an item
-            all_items.append(post)
+            for c in comments:
+                # Deduplicate by first 100 chars of body
+                key = c["body"][:100].lower()
+                if key not in seen_bodies:
+                    seen_bodies.add(key)
+                    all_items.append(c)
+                    sub_count += 1
 
-            # Only fetch comments if the post has some
-            if post["num_comments"] > 0:
-                time.sleep(REDDIT_DELAY)
-                comments = fetch_comments(subreddit, post["post_id"], MAX_COMMENTS_PER_POST)
-                all_items.extend(comments)
-                print(f"    Post '{post['title'][:40]}...' → {len(comments)} comments")
+            print(f"    Query '{query[:40]}...' → {len(comments)} raw, {sub_count} unique total")
 
-        print(f"    Total items from r/{subreddit}: {len([i for i in all_items if i['subreddit'] == subreddit])}")
-        time.sleep(REDDIT_DELAY)  # Pause between subreddits
+        # Also fetch recent posts
+        time.sleep(API_DELAY)
+        posts = fetch_posts_pullpush(subreddit, POSTS_PER_SUB)
+        for p in posts:
+            key = (p.get("body", "") or "")[:100].lower()
+            if key and key not in seen_bodies:
+                seen_bodies.add(key)
+                all_items.append(p)
+                sub_count += 1
+
+        print(f"    + {len(posts)} posts fetched")
+        print(f"    Total unique items from r/{subreddit}: {sub_count}")
 
     return all_items
 
 
 # ═══════════════════════════════════════
-# REVIEW FILTER (unchanged from v2)
+# REVIEW FILTER (unchanged from v3)
 # ═══════════════════════════════════════
 
 def is_genuine_review(text):
@@ -267,13 +258,13 @@ def is_genuine_review(text):
 
 
 # ═══════════════════════════════════════
-# GEMINI EXTRACTION (improved prompt)
+# GEMINI EXTRACTION (updated to new SDK)
 # ═══════════════════════════════════════
 
 def extract_products_with_gemini(text):
     """
     Send review text to Gemini for product extraction + sentiment analysis.
-    IMPROVED: Explicit sentiment rules with edge-case examples to fix mislabeling.
+    Uses the new google-genai SDK.
     """
     prompt = f"""You are a sentiment analysis expert for Indian skincare product reviews on Reddit.
 
@@ -320,8 +311,12 @@ If no specific branded products the user personally used are found: {{"products"
 Respond with ONLY valid JSON. No markdown, no explanation."""
 
     try:
-        response = gemini.generate_content(prompt)
-        time.sleep(5)  # Respect Gemini rate limit
+        response = gemini_client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+        )
+        time.sleep(4)  # Respect Gemini rate limit
+
         clean = response.text.strip()
         clean = re.sub(r"^```(?:json)?", "", clean).strip()
         clean = re.sub(r"```$", "", clean).strip()
@@ -401,7 +396,7 @@ def find_or_create_product(extracted, existing_products):
 
 
 def save_mention(product, comment_text, sentiment, subreddit, username):
-    """Insert into mentions table — score recompute happens later."""
+    """Insert into mentions table."""
     try:
         supabase.table("mentions").insert({
             "product_name": product["name"],
@@ -511,16 +506,16 @@ def finalize_all_scores():
 
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper — Path G Edition v3 (Free Reddit JSON)")
+    print("IndiaRecs Scraper — Path G v4 (Pullpush.io, no auth)")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
     existing_products = supabase.table("products").select("*").execute().data
     print(f"  {len(existing_products)} products in DB")
 
-    print("\n[2/4] Fetching from Reddit (public JSON API, no auth)...")
+    print("\n[2/4] Fetching from Pullpush.io (Reddit archive, no auth)...")
     items = fetch_all_items()
-    print(f"\n  Total items fetched: {len(items)}")
+    print(f"\n  Total unique items fetched: {len(items)}")
 
     print("\n[3/4] Processing items...")
     saved = 0
