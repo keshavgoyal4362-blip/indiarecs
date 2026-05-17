@@ -20,6 +20,8 @@
       --positive: #06b96f;
       --negative: #e94560;
       --amber: #f59e0b;
+      --blue: #3b82f6;
+      --purple: #a855f7;
     }
     html, body { overflow-x: hidden; }
     body { background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
@@ -47,9 +49,6 @@
 
     .product-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
     .product-tag { padding: 5px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; font-size: 12px; color: var(--text-dim); }
-
-    .buy-btn { display: inline-block; padding: 12px 28px; background: var(--accent); color: white; font-weight: 700; border-radius: 10px; font-size: 14px; transition: opacity 0.15s; }
-    .buy-btn:hover { opacity: 0.85; }
 
     /* Sentiment */
     .sentiment-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 28px; }
@@ -95,6 +94,36 @@
     .rec-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
     .rec-price { font-size: 13px; color: var(--positive); font-weight: 500; }
 
+    /* ─── Reddit Comments Section ─── */
+    .comments-section { margin-bottom: 28px; }
+    .comments-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .comments-header h2 { font-size: 16px; font-weight: bold; }
+    .comments-count { font-size: 13px; color: var(--text-dim); }
+    .comments-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .comment-filter-btn { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: bold; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
+    .comment-filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .comment-filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    .comment-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.15s; }
+    .comment-card:hover { border-color: rgba(255, 107, 53, 0.3); }
+    .comment-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .comment-subreddit { font-size: 12px; font-weight: bold; color: var(--accent); background: rgba(255, 107, 53, 0.1); padding: 3px 10px; border-radius: 999px; }
+    .comment-sentiment { font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 999px; }
+    .comment-sentiment.positive { color: var(--positive); background: rgba(6, 185, 111, 0.12); }
+    .comment-sentiment.negative { color: var(--negative); background: rgba(233, 69, 96, 0.12); }
+    .comment-sentiment.neutral { color: var(--amber); background: rgba(245, 158, 11, 0.12); }
+    .comment-user { font-size: 12px; color: var(--text-muted); }
+    .comment-time { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+    .comment-text { font-size: 14px; color: var(--text); line-height: 1.65; }
+    .comment-text-clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .comment-read-more { font-size: 12px; color: var(--accent); font-weight: bold; cursor: pointer; margin-top: 8px; display: inline-block; }
+    .comment-read-more:hover { text-decoration: underline; }
+
+    .comments-load-more { display: block; width: 100%; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 13px; font-weight: bold; color: var(--text-dim); cursor: pointer; transition: all 0.15s; text-align: center; margin-top: 8px; }
+    .comments-load-more:hover { border-color: var(--accent); color: var(--text); }
+
+    .comments-empty { text-align: center; padding: 40px 20px; color: var(--text-dim); font-size: 14px; background: var(--surface); border: 1px dashed var(--border); border-radius: 14px; }
+
     /* States */
     .loading { text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 15px; }
     .error { text-align: center; padding: 60px 20px; color: var(--negative); font-size: 15px; }
@@ -133,10 +162,13 @@
         <p class="price" id="product-price"></p>
         <div class="product-tags" id="product-tags"></div>
         <div class="description" id="product-description"></div>
-        <a class="buy-btn" id="buy-link" href="#" target="_blank" rel="noopener noreferrer nofollow">
-          Search on Amazon →
-        </a>
       </div>
+    </section>
+
+    <!-- Retailers (4 cards) -->
+    <section class="retailers-section" id="retailers-section">
+      <h2 class="section-title">Where to Buy</h2>
+      <div class="retailers-grid" id="retailers-grid"></div>
     </section>
 
     <!-- Sentiment -->
@@ -157,10 +189,23 @@
       </div>
     </section>
 
-    <!-- Retailers -->
-    <section class="retailers-section" id="retailers-section">
-      <h2 class="section-title">Where to Buy</h2>
-      <div class="retailers-grid" id="retailers-grid"></div>
+    <!-- Reddit Comments -->
+    <section class="comments-section" id="comments-section" style="display:none;">
+      <div class="comments-header">
+        <div>
+          <h2>What Reddit Says</h2>
+          <span class="comments-count" id="comments-count"></span>
+        </div>
+        <div class="comments-filters" id="comments-filters">
+          <button class="comment-filter-btn active" data-filter="all">All</button>
+          <button class="comment-filter-btn" data-filter="positive">👍 Positive</button>
+          <button class="comment-filter-btn" data-filter="negative">👎 Negative</button>
+        </div>
+      </div>
+      <div id="comments-list"></div>
+      <button class="comments-load-more" id="comments-load-more" style="display:none;">
+        Show more comments ↓
+      </button>
     </section>
 
     <!-- Recommendations -->
@@ -177,7 +222,7 @@
 <script src="/shared/nav.js"></script>
 
 <script type="module">
-  // ─── SUPABASE CLIENT (same approach as other pages) ─────────
+  // ─── SUPABASE CLIENT ───────────────────────────────────────
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co';
@@ -185,18 +230,30 @@
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ─── PARSE URL PATH ────────────────────────────────────────
-  // e.g. /skincare/cleansers/cetaphil-gentle-cleanser
   const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const categorySlug = pathParts[0] || '';       // "skincare"
-  const subcategorySlug = pathParts[1] || '';    // "cleansers"
-  const productSlug = pathParts[2] || '';        // "cetaphil-gentle-cleanser"
+  const categorySlug = pathParts[0] || '';
+  const subcategorySlug = pathParts[1] || '';
+  const productSlug = pathParts[2] || '';
 
-  // Helper: slug → Display Name
   const prettyName = (s) =>
     s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   function escapeHtml(s) {
     return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function timeAgo(d) {
+    if (!d) return '';
+    const ms = Date.now() - new Date(d).getTime();
+    const m = Math.floor(ms / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ago';
+    const dd = Math.floor(h / 24);
+    if (dd < 7) return dd + 'd ago';
+    if (dd < 30) return Math.floor(dd / 7) + 'w ago';
+    return Math.floor(dd / 30) + 'mo ago';
   }
 
   // ─── BUILD BREADCRUMB ──────────────────────────────────────
@@ -208,6 +265,12 @@
     `;
   }
 
+  // ─── GLOBAL STATE FOR COMMENTS ─────────────────────────────
+  let allComments = [];
+  let currentFilter = 'all';
+  let visibleCount = 8;
+  const COMMENTS_PER_PAGE = 8;
+
   // ─── FETCH PRODUCT ─────────────────────────────────────────
   async function fetchProduct() {
     if (!productSlug) {
@@ -216,7 +279,6 @@
     }
 
     try {
-      // Query by slug column (which exists in your DB)
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -233,6 +295,7 @@
       const product = data[0];
       renderProduct(product);
       fetchRecommendations(product);
+      fetchComments(product.name);
 
     } catch (err) {
       console.error('Fetch error:', err);
@@ -254,10 +317,8 @@
     // Image (with fallback)
     const img = document.getElementById('product-img');
     if (p.image_url && !p.image_url.startsWith('data:')) {
-      // Only use image_url if it's a real URL, not a base64 blob
       img.src = p.image_url;
     } else {
-      // Gradient fallback
       img.style.display = 'none';
       img.parentElement.innerHTML = `
         <div style="width:200px;height:200px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:bold;color:white;background:linear-gradient(135deg,#ff6b35,#a855f7);">
@@ -269,9 +330,7 @@
     // Text fields
     document.getElementById('product-name').textContent = p.name;
     document.getElementById('product-brand').textContent = p.brand ? `by ${p.brand}` : '';
-    document.getElementById('product-price').textContent = p.price_inr
-      ? `₹${p.price_inr}`
-      : '';
+    document.getElementById('product-price').textContent = p.price_inr ? `₹${p.price_inr}` : '';
     document.getElementById('product-description').textContent = p.description || '';
 
     // Tags
@@ -282,9 +341,26 @@
     if (p.tags && Array.isArray(p.tags)) tags.push(...p.tags);
     tagsEl.innerHTML = tags.map(t => `<span class="product-tag">${escapeHtml(t)}</span>`).join('');
 
-    // Buy link (search Amazon for the product)
+    // Retailers — 4 cards (Amazon, Nykaa, Flipkart, Tata 1mg)
     const q = encodeURIComponent(p.name);
-    document.getElementById('buy-link').href = `https://www.amazon.in/s?k=${q}`;
+    document.getElementById('retailers-grid').innerHTML = `
+      <a href="https://www.amazon.in/s?k=${q}" target="_blank" rel="noopener" class="retailer-card">
+        <div class="retailer-name">Amazon</div>
+        <div class="retailer-action">Find prices →</div>
+      </a>
+      <a href="https://www.nykaa.com/search/result/?q=${q}" target="_blank" rel="noopener" class="retailer-card">
+        <div class="retailer-name">Nykaa</div>
+        <div class="retailer-action">Find prices →</div>
+      </a>
+      <a href="https://www.flipkart.com/search?q=${q}" target="_blank" rel="noopener" class="retailer-card">
+        <div class="retailer-name">Flipkart</div>
+        <div class="retailer-action">Find prices →</div>
+      </a>
+      <a href="https://www.1mg.com/search/all?name=${q}" target="_blank" rel="noopener" class="retailer-card">
+        <div class="retailer-name">Tata 1mg</div>
+        <div class="retailer-action">Find prices →</div>
+      </a>
+    `;
 
     // Sentiment
     const total = p.mention_count || 0;
@@ -320,7 +396,7 @@
       `;
     }
 
-    // Pros & Cons — stored as newline-separated TEXT, not arrays
+    // Pros & Cons
     const pros = (p.pros || '').split('\n').filter(x => x.trim());
     const cons = (p.cons || '').split('\n').filter(x => x.trim());
 
@@ -334,35 +410,132 @@
         : '<div class="pc-empty">AI summary generating soon.</div>';
     }
 
-    // Retailers
-    document.getElementById('retailers-grid').innerHTML = `
-      <a href="https://www.amazon.in/s?k=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Amazon</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-      <a href="https://www.nykaa.com/search/result/?q=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Nykaa</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-      <a href="https://www.flipkart.com/search?q=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Flipkart</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-      <a href="https://www.1mg.com/search/all?name=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Tata 1mg</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-    `;
-
     // Show content, hide loading
     document.getElementById('loading').style.display = 'none';
     document.getElementById('product-content').style.display = 'block';
   }
 
+  // ─── FETCH COMMENTS FROM MENTIONS TABLE ────────────────────
+  async function fetchComments(productName) {
+    try {
+      const { data, error } = await supabase
+        .from('mentions')
+        .select('*')
+        .eq('product_name', productName)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (!data || data.length === 0) return;
+
+      allComments = data;
+      renderCommentsSection();
+
+    } catch (err) {
+      console.error('Comments fetch error:', err);
+      // Fail silently — comments are non-critical
+    }
+  }
+
+  // ─── RENDER COMMENTS SECTION ───────────────────────────────
+  function renderCommentsSection() {
+    if (allComments.length === 0) return;
+
+    document.getElementById('comments-section').style.display = 'block';
+    document.getElementById('comments-count').textContent =
+      `${allComments.length} mention${allComments.length === 1 ? '' : 's'} found`;
+
+    // Setup filter buttons
+    setupCommentFilters();
+    renderCommentsList();
+  }
+
+  function setupCommentFilters() {
+    const filterBtns = document.querySelectorAll('.comment-filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        visibleCount = COMMENTS_PER_PAGE;
+        renderCommentsList();
+      });
+    });
+  }
+
+  function getFilteredComments() {
+    if (currentFilter === 'all') return allComments;
+    return allComments.filter(c => (c.sentiment || '').toLowerCase() === currentFilter);
+  }
+
+  function renderCommentsList() {
+    const filtered = getFilteredComments();
+    const toShow = filtered.slice(0, visibleCount);
+    const listEl = document.getElementById('comments-list');
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `
+        <div class="comments-empty">
+          No ${currentFilter} comments found for this product yet.
+        </div>`;
+      document.getElementById('comments-load-more').style.display = 'none';
+      return;
+    }
+
+    listEl.innerHTML = toShow.map((c, i) => {
+      const text = c.comment_text || '';
+      const isLong = text.length > 280;
+      const sentiment = (c.sentiment || 'neutral').toLowerCase();
+      const sentimentLabel = sentiment === 'positive' ? '👍 Positive'
+        : sentiment === 'negative' ? '👎 Negative'
+        : '😐 Neutral';
+
+      return `
+        <div class="comment-card">
+          <div class="comment-meta">
+            ${c.subreddit ? `<span class="comment-subreddit">r/${escapeHtml(c.subreddit)}</span>` : ''}
+            <span class="comment-sentiment ${sentiment}">${sentimentLabel}</span>
+            ${c.username && !c.username.startsWith('legacy_') ? `<span class="comment-user">u/${escapeHtml(c.username)}</span>` : ''}
+            <span class="comment-time">${timeAgo(c.created_at)}</span>
+          </div>
+          <div class="comment-text ${isLong ? 'comment-text-clamped' : ''}" id="comment-text-${i}">
+            ${escapeHtml(text)}
+          </div>
+          ${isLong ? `<span class="comment-read-more" onclick="toggleComment(${i}, this)">Read more</span>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    // Show/hide load more button
+    const loadMoreBtn = document.getElementById('comments-load-more');
+    if (filtered.length > visibleCount) {
+      loadMoreBtn.style.display = 'block';
+      loadMoreBtn.textContent = `Show more comments (${filtered.length - visibleCount} remaining) ↓`;
+    } else {
+      loadMoreBtn.style.display = 'none';
+    }
+  }
+
+  // Make toggle function globally available
+  window.toggleComment = function(index, btn) {
+    const el = document.getElementById(`comment-text-${index}`);
+    if (el.classList.contains('comment-text-clamped')) {
+      el.classList.remove('comment-text-clamped');
+      btn.textContent = 'Show less';
+    } else {
+      el.classList.add('comment-text-clamped');
+      btn.textContent = 'Read more';
+    }
+  };
+
+  // Load more button handler
+  document.getElementById('comments-load-more').addEventListener('click', () => {
+    visibleCount += COMMENTS_PER_PAGE;
+    renderCommentsList();
+  });
+
   // ─── FETCH RECOMMENDATIONS ─────────────────────────────────
   async function fetchRecommendations(currentProduct) {
     try {
-      // Find other products in the same product_category (NOT "subcategory" — that column doesn't exist)
       const { data: recs, error } = await supabase
         .from('products')
         .select('name, slug, image_url, price_inr, category, product_category, brand')
@@ -372,11 +545,9 @@
         .limit(4);
 
       if (error || !recs || recs.length === 0) return;
-
       renderRecommendations(recs);
     } catch (err) {
       console.error('Recs fetch error:', err);
-      // Fail silently — recs are non-critical
     }
   }
 
@@ -385,7 +556,6 @@
     const grid = document.getElementById('recs-grid');
 
     grid.innerHTML = recs.map(rec => {
-      // Build URL matching the Vercel rewrite pattern: /category/subcategory/slug
       const recUrl = `/${rec.category || categorySlug}/${subcategorySlug}/${rec.slug}`;
       const hasRealImage = rec.image_url && !rec.image_url.startsWith('data:');
       const imgHtml = hasRealImage
@@ -410,7 +580,6 @@
     const errEl = document.getElementById('error');
     errEl.textContent = msg;
     errEl.style.display = 'block';
-    // Still show breadcrumb even on error
     renderBreadcrumb('Not Found');
   }
 
