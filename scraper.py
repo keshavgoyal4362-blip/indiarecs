@@ -334,9 +334,10 @@ Respond with ONLY valid JSON. No markdown, no explanation."""
     except Exception as e:
         if "429" in str(e) or "quota" in str(e).lower():
             print(f"  Gemini quota hit — stopping extraction early.")
-            raise SystemExit(1)
+            return "QUOTA_HIT"  # Signal to main loop to stop, but don't crash
         print(f"  Gemini error: {e}")
         return None
+
 
 
 # ═══════════════════════════════════════
@@ -538,9 +539,15 @@ def main():
         subreddit = item.get("subreddit", "unknown") or "unknown"
 
         result = extract_products_with_gemini(text)
+
+        # If quota hit, stop processing but continue to save phase
+        if result == "QUOTA_HIT":
+            break
+
         if not result or not result.get("products"):
             skip_no_extract += 1
             continue
+
 
         for extracted in result["products"]:
             if not is_valid_product(extracted):
