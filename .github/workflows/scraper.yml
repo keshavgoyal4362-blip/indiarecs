@@ -22,10 +22,7 @@ jobs:
 
       - name: Run scraper
         env:
-          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}   # ← ADDED
-          GOOGLE_CX: ${{ secrets.GOOGLE_CX }}             # ← ADDED
         run: python scraper.py
