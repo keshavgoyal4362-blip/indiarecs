@@ -1,13 +1,13 @@
+
 """
-IndiaRecs Scraper — Path G Edition (v4)
+IndiaRecs Scraper — Path G Edition (v5)
 ========================================
 
-Changes from v3:
-- REPLACED Reddit public JSON (blocked from cloud IPs) with Pullpush.io API
-- Pullpush.io = free Reddit archive, no auth, works from GitHub Actions
-- Fetches COMMENTS directly with review-focused keyword search (much better hit rate)
-- Also fetches posts with selftext for additional coverage
-- Fixed google.generativeai deprecation warning → uses google-genai package
+Changes from v4:
+- ADDED reddit_url capture from Pullpush.io permalink field
+- ADDED slug generation for new products (required for product.html routing)
+- ADDED PA-API placeholder (commented out, ready for when Associates account is approved)
+- ADDED affiliate_url field on product creation (null until PA-API populates it)
 - All scoring/Supabase logic unchanged
 """
 
@@ -65,6 +65,56 @@ VALID_CATEGORIES = {"cleanser", "moisturiser", "sunscreen", "serum", "toner", "o
 
 
 # ═══════════════════════════════════════
+# PA-API PLACEHOLDER (uncomment after 3 qualifying sales)
+# ═══════════════════════════════════════
+#
+# When your Amazon Associates account gets PA-API access:
+# 1. Add these secrets to GitHub Actions: AMAZON_ACCESS_KEY, AMAZON_SECRET_KEY
+# 2. pip install paapi5-python-sdk
+# 3. Uncomment the function below
+# 4. Call it in find_or_create_product() to populate affiliate_url
+#
+# AMAZON_ASSOCIATE_TAG = "indiarecs-21"
+#
+# def get_amazon_affiliate_url(product_name):
+#     """
+#     Search Amazon PA-API for product, return affiliate URL.
+#     Called when creating new products to populate affiliate_url field.
+#     """
+#     try:
+#         from paapi5_python_sdk.api.default_api import DefaultApi
+#         from paapi5_python_sdk.models.search_items_request import SearchItemsRequest
+#         from paapi5_python_sdk.models.partner_type import PartnerType
+#         from paapi5_python_sdk.models.search_items_resource import SearchItemsResource
+#
+#         api = DefaultApi(
+#             access_key=os.environ["AMAZON_ACCESS_KEY"],
+#             secret_key=os.environ["AMAZON_SECRET_KEY"],
+#             host="webservices.amazon.in",
+#             region="eu-west-1",
+#         )
+#
+#         request = SearchItemsRequest(
+#             partner_tag=AMAZON_ASSOCIATE_TAG,
+#             partner_type=PartnerType.ASSOCIATES,
+#             keywords=product_name,
+#             search_index="Beauty",
+#             item_count=1,
+#             resources=[SearchItemsResource.ITEMINFO_TITLE, SearchItemsResource.OFFERS_LISTINGS_PRICE],
+#         )
+#
+#         response = api.search_items(request)
+#         if response.search_result and response.search_result.items:
+#             item = response.search_result.items[0]
+#             return item.detail_page_url  # Already contains your tag
+#         return None
+#
+#     except Exception as e:
+#         print(f"  PA-API error: {e}")
+#         return None
+
+
+# ═══════════════════════════════════════
 # INIT CLIENTS
 # ═══════════════════════════════════════
 
@@ -76,13 +126,31 @@ GEMINI_MODEL = "gemini-2.5-flash-lite"
 
 
 # ═══════════════════════════════════════
-# PULLPUSH.IO FETCHER (replaces Reddit JSON)
+# HELPER: SLUG GENERATION
+# ═══════════════════════════════════════
+
+def generate_slug(name):
+    """
+    Convert product name to URL-safe slug.
+    e.g. "Minimalist Niacinamide 10% Serum" → "minimalist-niacinamide-10-serum"
+    """
+    slug = name.lower().strip()
+    slug = re.sub(r'[^a-z0-9\s-]', '', slug)  # Remove special chars
+    slug = re.sub(r'\s+', '-', slug)           # Spaces → hyphens
+    slug = re.sub(r'-+', '-', slug)            # Collapse multiple hyphens
+    slug = slug.strip('-')                     # Trim leading/trailing hyphens
+    return slug
+
+
+# ═══════════════════════════════════════
+# PULLPUSH.IO FETCHER (with reddit_url capture)
 # ═══════════════════════════════════════
 
 def fetch_comments_pullpush(subreddit, query, size=100):
     """
     Fetch comments from Pullpush.io (Reddit archive API).
     No auth needed, works from any IP including GitHub Actions.
+    Now captures permalink for source attribution.
     """
     params = {
         "subreddit": subreddit,
@@ -113,11 +181,17 @@ def fetch_comments_pullpush(subreddit, query, size=100):
             if body in ("[deleted]", "[removed]", ""):
                 continue
 
+            # Build full Reddit URL from permalink
+            # Pullpush returns permalink like: /r/sub/comments/abc123/title/comment_id/
+            permalink = c.get("permalink", "")
+            reddit_url = f"https://www.reddit.com{permalink}" if permalink else None
+
             results.append({
                 "dataType": "comment",
                 "body": body,
                 "author": author,
                 "subreddit": subreddit,
+                "reddit_url": reddit_url,
             })
 
         return results
@@ -131,6 +205,7 @@ def fetch_posts_pullpush(subreddit, size=25):
     """
     Fetch recent posts with selftext from Pullpush.io.
     Supplements comment data with post bodies that contain reviews.
+    Now captures permalink for source attribution.
     """
     params = {
         "subreddit": subreddit,
@@ -162,12 +237,17 @@ def fetch_posts_pullpush(subreddit, size=25):
             if selftext in ("[deleted]", "[removed]", ""):
                 continue
 
+            # Build full Reddit URL from permalink
+            permalink = p.get("permalink", "")
+            reddit_url = f"https://www.reddit.com{permalink}" if permalink else None
+
             results.append({
                 "dataType": "post",
                 "title": title,
                 "body": selftext,
                 "author": author,
                 "subreddit": subreddit,
+                "reddit_url": reddit_url,
             })
 
         return results
@@ -258,7 +338,7 @@ def is_genuine_review(text):
 
 
 # ═══════════════════════════════════════
-# GEMINI EXTRACTION (updated to new SDK)
+# GEMINI EXTRACTION (unchanged from v4)
 # ═══════════════════════════════════════
 
 def extract_products_with_gemini(text):
@@ -340,7 +420,7 @@ Respond with ONLY valid JSON. No markdown, no explanation."""
 
 
 # ═══════════════════════════════════════
-# PRODUCT VALIDATION & DB OPS (unchanged)
+# PRODUCT VALIDATION & DB OPS
 # ═══════════════════════════════════════
 
 def is_valid_product(extracted):
@@ -372,8 +452,21 @@ def find_or_create_product(extracted, existing_products):
            (p.get("product_category") or "") == category:
             return p, False
 
+    # Generate URL-safe slug for product page routing
+    slug = generate_slug(extracted["name"])
+
+    # Check for slug collision — append brand if needed
+    existing_slugs = {p.get("slug") for p in existing_products if p.get("slug")}
+    if slug in existing_slugs:
+        slug = generate_slug(f"{extracted['brand']} {extracted['name']}")
+
+    # PA-API: When enabled, uncomment this to auto-populate affiliate_url
+    # affiliate_url = get_amazon_affiliate_url(extracted["name"])
+    affiliate_url = None
+
     new_data = {
         "name": extracted["name"],
+        "slug": slug,
         "category": "skincare",
         "brand": extracted["brand"],
         "product_category": category,
@@ -384,6 +477,7 @@ def find_or_create_product(extracted, existing_products):
         "skin_type": "all",
         "price_inr": 0,
         "image_url": None,
+        "affiliate_url": affiliate_url,
     }
     try:
         result = supabase.table("products").insert(new_data).execute()
@@ -395,16 +489,22 @@ def find_or_create_product(extracted, existing_products):
         return None, False
 
 
-def save_mention(product, comment_text, sentiment, subreddit, username):
-    """Insert into mentions table."""
+def save_mention(product, comment_text, sentiment, subreddit, username, reddit_url=None):
+    """Insert into mentions table, now with reddit_url for source attribution."""
     try:
-        supabase.table("mentions").insert({
+        mention_data = {
             "product_name": product["name"],
             "comment_text": comment_text[:1000],
             "sentiment": sentiment,
             "subreddit": subreddit,
             "username": username,
-        }).execute()
+        }
+
+        # Only include reddit_url if we have one (avoids null insert issues on older schemas)
+        if reddit_url:
+            mention_data["reddit_url"] = reddit_url
+
+        supabase.table("mentions").insert(mention_data).execute()
         return True
     except Exception as e:
         print(f"  Save failed: {e}")
@@ -506,7 +606,7 @@ def finalize_all_scores():
 
 def main():
     print("=" * 60)
-    print("IndiaRecs Scraper — Path G v4 (Pullpush.io, no auth)")
+    print("IndiaRecs Scraper — Path G v5 (Pullpush.io + reddit_url)")
     print("=" * 60)
 
     print("\n[1/4] Loading existing products...")
@@ -536,6 +636,7 @@ def main():
 
         username = item.get("author") or "anonymous"
         subreddit = item.get("subreddit", "unknown") or "unknown"
+        reddit_url = item.get("reddit_url")  # NEW: captured from Pullpush
 
         result = extract_products_with_gemini(text)
 
@@ -557,13 +658,14 @@ def main():
                 continue
             if is_new:
                 new_products += 1
-                print(f"  + New product: {product['name']}")
+                print(f"  + New product: {product['name']} (/{product.get('slug', '?')})")
 
             sentiment = extracted.get("sentiment", "neutral")
             if sentiment not in ("positive", "negative", "neutral"):
                 sentiment = "neutral"
 
-            if save_mention(product, text, sentiment, subreddit, username):
+            # Pass reddit_url to save_mention for source attribution
+            if save_mention(product, text, sentiment, subreddit, username, reddit_url):
                 saved += 1
                 print(f"    {sentiment} → {product['name']} (by u/{username})")
 
