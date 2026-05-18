@@ -241,11 +241,12 @@
     return s.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
   }
 
-  function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str || ''));
-    return div.innerHTML;
-  }
+function escapeHtml(s) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(s || ''));
+  return div.innerHTML;
+}
+
 
   function timeAgo(d) {
     if (!d) return '';
