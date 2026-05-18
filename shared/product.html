@@ -76,9 +76,9 @@
     .pc-item.con::before { background: var(--negative); }
     .pc-empty { font-size: 13px; color: var(--text-muted); font-style: italic; }
 
-    /* Retailers */
+    /* Retailer — single Amazon card */
     .retailers-section { margin-bottom: 28px; }
-    .retailers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    .retailers-grid { display: grid; grid-template-columns: minmax(140px, 220px); gap: 10px; }
     .retailer-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; transition: border-color 0.15s; }
     .retailer-card:hover { border-color: var(--accent); }
     .retailer-name { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
@@ -165,7 +165,7 @@
       </div>
     </section>
 
-    <!-- Retailers (4 cards) -->
+    <!-- Retailer — Amazon Only -->
     <section class="retailers-section" id="retailers-section">
       <h2 class="section-title">Where to Buy</h2>
       <div class="retailers-grid" id="retailers-grid"></div>
@@ -239,7 +239,7 @@
     s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
   }
 
   function timeAgo(d) {
@@ -341,24 +341,19 @@
     if (p.tags && Array.isArray(p.tags)) tags.push(...p.tags);
     tagsEl.innerHTML = tags.map(t => `<span class="product-tag">${escapeHtml(t)}</span>`).join('');
 
-    // Retailers — 4 cards (Amazon, Nykaa, Flipkart, Tata 1mg)
+    // ─── RETAILER: Amazon only, with affiliate tag ───────────
     const q = encodeURIComponent(p.name);
+
+    // Use a direct affiliate URL from DB if available (for future PA-API integration),
+    // otherwise fall back to Amazon search with your Associates tag
+    const amazonUrl = p.affiliate_url
+      ? p.affiliate_url
+      : `https://www.amazon.in/s?k=${q}&tag=indiarecs-21`;
+
     document.getElementById('retailers-grid').innerHTML = `
-      <a href="https://www.amazon.in/s?k=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Amazon</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-      <a href="https://www.nykaa.com/search/result/?q=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Nykaa</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-      <a href="https://www.flipkart.com/search?q=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Flipkart</div>
-        <div class="retailer-action">Find prices →</div>
-      </a>
-      <a href="https://www.1mg.com/search/all?name=${q}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Tata 1mg</div>
-        <div class="retailer-action">Find prices →</div>
+      <a href="${amazonUrl}" target="_blank" rel="noopener" class="retailer-card">
+        <div class="retailer-name">Amazon India</div>
+        <div class="retailer-action">Check price →</div>
       </a>
     `;
 
