@@ -76,7 +76,7 @@
     .pc-item.con::before { background: var(--negative); }
     .pc-empty { font-size: 13px; color: var(--text-muted); font-style: italic; }
 
-    /* Retailer — single Amazon card */
+    /* Retailer */
     .retailers-section { margin-bottom: 28px; }
     .retailers-grid { display: grid; grid-template-columns: minmax(140px, 220px); gap: 10px; }
     .retailer-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; transition: border-color 0.15s; }
@@ -94,7 +94,7 @@
     .rec-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
     .rec-price { font-size: 13px; color: var(--positive); font-weight: 500; }
 
-    /* ─── Reddit Comments Section ─── */
+    /* Reddit Comments */
     .comments-section { margin-bottom: 28px; }
     .comments-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
     .comments-header h2 { font-size: 16px; font-weight: bold; }
@@ -119,7 +119,6 @@
     .comment-read-more { font-size: 12px; color: var(--accent); font-weight: bold; cursor: pointer; display: inline-block; }
     .comment-read-more:hover { text-decoration: underline; }
 
-    /* Comment footer — holds "Read more" and "View on Reddit" */
     .comment-footer { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
     .comment-source-link { font-size: 12px; color: var(--text-muted); font-weight: 500; transition: color 0.15s; margin-left: auto; }
     .comment-source-link:hover { color: var(--accent); text-decoration: underline; }
@@ -170,7 +169,7 @@
       </div>
     </section>
 
-    <!-- Retailer — Amazon Only -->
+    <!-- Retailer -->
     <section class="retailers-section" id="retailers-section">
       <h2 class="section-title">Where to Buy</h2>
       <div class="retailers-grid" id="retailers-grid"></div>
@@ -203,13 +202,13 @@
         </div>
         <div class="comments-filters" id="comments-filters">
           <button class="comment-filter-btn active" data-filter="all">All</button>
-          <button class="comment-filter-btn" data-filter="positive">👍 Positive</button>
-          <button class="comment-filter-btn" data-filter="negative">👎 Negative</button>
+          <button class="comment-filter-btn" data-filter="positive">Positive</button>
+          <button class="comment-filter-btn" data-filter="negative">Negative</button>
         </div>
       </div>
       <div id="comments-list"></div>
       <button class="comments-load-more" id="comments-load-more" style="display:none;">
-        Show more comments ↓
+        Show more comments
       </button>
     </section>
 
@@ -227,54 +226,61 @@
 <script src="/shared/nav.js"></script>
 
 <script type="module">
-  // ─── SUPABASE CLIENT ───────────────────────────────────────
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
   const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyaGh6bmpmcHN0d3V4ZGx3eWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwMjIxMjMsImV4cCI6MjA2NDU5ODEyM30.SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc';
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ─── PARSE URL PATH ────────────────────────────────────────
+  // ─── URL PARSING ───────────────────────────────────────────
   const pathParts = window.location.pathname.split('/').filter(Boolean);
   const categorySlug = pathParts[0] || '';
   const subcategorySlug = pathParts[1] || '';
   const productSlug = pathParts[2] || '';
 
-  const prettyName = (s) =>
-    s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  function prettyName(s) {
+    return s.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  }
 
-  function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // ─── SAFE HTML ESCAPE (the fix for the syntax error) ───────
+  function escapeHtml(str) {
+    var s = String(str || '');
+    s = s.replace(/&/g, '\x26amp;');
+    s = s.replace(/</g, '\x26lt;');
+    s = s.replace(/>/g, '\x26gt;');
+    s = s.replace(/"/g, '\x26quot;');
+    s = s.replace(/'/g, '\x26#39;');
+    return s;
   }
 
   function timeAgo(d) {
     if (!d) return '';
-    const ms = Date.now() - new Date(d).getTime();
-    const m = Math.floor(ms / 60000);
+    var ms = Date.now() - new Date(d).getTime();
+    var m = Math.floor(ms / 60000);
     if (m < 1) return 'just now';
     if (m < 60) return m + 'm ago';
-    const h = Math.floor(m / 60);
+    var h = Math.floor(m / 60);
     if (h < 24) return h + 'h ago';
-    const dd = Math.floor(h / 24);
+    var dd = Math.floor(h / 24);
     if (dd < 7) return dd + 'd ago';
     if (dd < 30) return Math.floor(dd / 7) + 'w ago';
     return Math.floor(dd / 30) + 'mo ago';
   }
 
-  // ─── BUILD BREADCRUMB ──────────────────────────────────────
+  // ─── BREADCRUMB ────────────────────────────────────────────
   function renderBreadcrumb(productName) {
-    document.getElementById('breadcrumb').innerHTML = `
-      <a href="/">Home</a><span class="sep">›</span>
-      <a href="/${categorySlug}/${subcategorySlug}">${prettyName(subcategorySlug)}</a><span class="sep">›</span>
-      <span>${escapeHtml(productName)}</span>
-    `;
+    var bc = document.getElementById('breadcrumb');
+    bc.innerHTML = '<a href="/">Home</a><span class="sep">&#8250;</span>' +
+      '<a href="/' + categorySlug + '/' + subcategorySlug + '">' + prettyName(subcategorySlug) + '</a>' +
+      '<span class="sep">&#8250;</span>' +
+      '<span>' + escapeHtml(productName) + '</span>';
   }
 
   // ─── GLOBAL STATE FOR COMMENTS ─────────────────────────────
-  let allComments = [];
-  let currentFilter = 'all';
-  let visibleCount = 8;
-  const COMMENTS_PER_PAGE = 8;
+  var allComments = [];
+  var currentFilter = 'all';
+  var visibleCount = 8;
+  var COMMENTS_PER_PAGE = 8;
 
   // ─── FETCH PRODUCT ─────────────────────────────────────────
   async function fetchProduct() {
@@ -284,20 +290,20 @@
     }
 
     try {
-      const { data, error } = await supabase
+      var result = await supabase
         .from('products')
         .select('*')
         .eq('slug', productSlug)
         .limit(1);
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      if (!data || data.length === 0) {
+      if (!result.data || result.data.length === 0) {
         showError('Product not found. It may have been removed or the URL is incorrect.');
         return;
       }
 
-      const product = data[0];
+      var product = result.data[0];
       renderProduct(product);
       fetchRecommendations(product);
       fetchComments(product.name);
@@ -310,150 +316,119 @@
 
   // ─── RENDER PRODUCT ────────────────────────────────────────
   function renderProduct(p) {
-    // Page title & meta
-    document.getElementById('page-title').textContent =
-      `${p.name} — ${prettyName(subcategorySlug)} | IndiaRecs`;
-    document.getElementById('meta-description').content =
-      p.description || `${p.name} by ${p.brand || 'Unknown'} — Reddit sentiment and reviews`;
+    document.getElementById('page-title').textContent = p.name + ' | IndiaRecs';
+    document.getElementById('meta-description').content = p.description || (p.name + ' - Reddit reviews and sentiment');
 
-    // Breadcrumb
     renderBreadcrumb(p.name);
 
-    // Image (with fallback)
-    const img = document.getElementById('product-img');
-    if (p.image_url && !p.image_url.startsWith('data:')) {
+    // Image
+    var img = document.getElementById('product-img');
+    if (p.image_url && p.image_url.indexOf('data:') !== 0) {
       img.src = p.image_url;
+      img.alt = p.name;
     } else {
-      img.style.display = 'none';
-      img.parentElement.innerHTML = `
-        <div style="width:200px;height:200px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:bold;color:white;background:linear-gradient(135deg,#ff6b35,#a855f7);">
-          ${(p.name || '?').charAt(0).toUpperCase()}
-        </div>`;
+      var initial = (p.name || '?').charAt(0).toUpperCase();
+      img.parentElement.innerHTML = '<div style="width:200px;height:200px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:bold;color:white;background:linear-gradient(135deg,#ff6b35,#a855f7);">' + initial + '</div>';
     }
-    img.alt = p.name;
 
     // Text fields
     document.getElementById('product-name').textContent = p.name;
-    document.getElementById('product-brand').textContent = p.brand ? `by ${p.brand}` : '';
-    document.getElementById('product-price').textContent = p.price_inr ? `₹${p.price_inr}` : '';
+    document.getElementById('product-brand').textContent = p.brand ? 'by ' + p.brand : '';
+    document.getElementById('product-price').textContent = p.price_inr ? '\u20B9' + p.price_inr : '';
     document.getElementById('product-description').textContent = p.description || '';
 
     // Tags
-    const tagsEl = document.getElementById('product-tags');
-    const tags = [];
+    var tagsEl = document.getElementById('product-tags');
+    var tags = [];
     if (p.product_category) tags.push(p.product_category);
     if (p.skin_type) tags.push(p.skin_type + ' skin');
-    if (p.tags && Array.isArray(p.tags)) tags.push(...p.tags);
-    tagsEl.innerHTML = tags.map(t => `<span class="product-tag">${escapeHtml(t)}</span>`).join('');
+    if (p.tags && Array.isArray(p.tags)) tags = tags.concat(p.tags);
+    tagsEl.innerHTML = tags.map(function(t) {
+      return '<span class="product-tag">' + escapeHtml(t) + '</span>';
+    }).join('');
 
-    // ─── RETAILER: Amazon only, with affiliate tag ───────────
-    const q = encodeURIComponent(p.name);
-
-    // Use a direct affiliate URL from DB if available (for future PA-API integration),
-    // otherwise fall back to Amazon search with your Associates tag
-    const amazonUrl = p.affiliate_url
-      ? p.affiliate_url
-      : `https://www.amazon.in/s?k=${q}&tag=indiarecs-21`;
-
-    document.getElementById('retailers-grid').innerHTML = `
-      <a href="${amazonUrl}" target="_blank" rel="noopener" class="retailer-card">
-        <div class="retailer-name">Amazon India</div>
-        <div class="retailer-action">Check price →</div>
-      </a>
-    `;
+    // Amazon link
+    var q = encodeURIComponent(p.name);
+    var amazonUrl = p.affiliate_url ? p.affiliate_url : 'https://www.amazon.in/s?k=' + q + '&tag=indiarecs-21';
+    document.getElementById('retailers-grid').innerHTML =
+      '<a href="' + amazonUrl + '" target="_blank" rel="noopener" class="retailer-card">' +
+      '<div class="retailer-name">Amazon India</div>' +
+      '<div class="retailer-action">Check price \u2192</div>' +
+      '</a>';
 
     // Sentiment
-    const total = p.mention_count || 0;
-    const pos = p.positive_count || 0;
-    const neg = p.negative_count || 0;
-    const neu = Math.max(0, total - pos - neg);
-    const denom = pos + neu + neg;
+    var total = p.mention_count || 0;
+    var pos = p.positive_count || 0;
+    var neg = p.negative_count || 0;
+    var neu = Math.max(0, total - pos - neg);
+    var denom = pos + neu + neg;
 
     if (denom > 0) {
       document.getElementById('sentiment-section').style.display = 'block';
-      const posPct = Math.round((pos / denom) * 100);
-      const neuPct = Math.round((neu / denom) * 100);
-      const negPct = Math.round((neg / denom) * 100);
-      document.getElementById('sentiment-bars').innerHTML = `
-        <div class="sentiment-row">
-          <span class="sentiment-emoji">👍</span>
-          <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill pos" style="width:${posPct}%"></div></div>
-          <span class="sentiment-label"><strong>${pos}</strong> (${posPct}%)</span>
-        </div>
-        <div class="sentiment-row">
-          <span class="sentiment-emoji">😐</span>
-          <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neu" style="width:${neuPct}%"></div></div>
-          <span class="sentiment-label"><strong>${neu}</strong> (${neuPct}%)</span>
-        </div>
-        <div class="sentiment-row">
-          <span class="sentiment-emoji">👎</span>
-          <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neg" style="width:${negPct}%"></div></div>
-          <span class="sentiment-label"><strong>${neg}</strong> (${negPct}%)</span>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
-          Based on ${total} Reddit mention${total === 1 ? '' : 's'} from Indian communities
-        </div>
-      `;
+      var posPct = Math.round((pos / denom) * 100);
+      var neuPct = Math.round((neu / denom) * 100);
+      var negPct = Math.round((neg / denom) * 100);
+      document.getElementById('sentiment-bars').innerHTML =
+        '<div class="sentiment-row"><span class="sentiment-emoji">\uD83D\uDC4D</span><div class="sentiment-bar-wrap"><div class="sentiment-bar-fill pos" style="width:' + posPct + '%"></div></div><span class="sentiment-label"><strong>' + pos + '</strong> (' + posPct + '%)</span></div>' +
+        '<div class="sentiment-row"><span class="sentiment-emoji">\uD83D\uDE10</span><div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neu" style="width:' + neuPct + '%"></div></div><span class="sentiment-label"><strong>' + neu + '</strong> (' + neuPct + '%)</span></div>' +
+        '<div class="sentiment-row"><span class="sentiment-emoji">\uD83D\uDC4E</span><div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neg" style="width:' + negPct + '%"></div></div><span class="sentiment-label"><strong>' + neg + '</strong> (' + negPct + '%)</span></div>' +
+        '<div style="margin-top:12px;font-size:12px;color:var(--text-muted);">Based on ' + total + ' Reddit mention' + (total === 1 ? '' : 's') + ' from Indian communities</div>';
     }
 
     // Pros & Cons
-    const pros = (p.pros || '').split('\n').filter(x => x.trim());
-    const cons = (p.cons || '').split('\n').filter(x => x.trim());
+    var pros = (p.pros || '').split('\n').filter(function(x) { return x.trim(); });
+    var cons = (p.cons || '').split('\n').filter(function(x) { return x.trim(); });
 
     if (pros.length > 0 || cons.length > 0) {
       document.getElementById('pros-cons-section').style.display = 'grid';
       document.getElementById('pros-list').innerHTML = pros.length > 0
-        ? pros.map(item => `<div class="pc-item pro">${escapeHtml(item)}</div>`).join('')
+        ? pros.map(function(item) { return '<div class="pc-item pro">' + escapeHtml(item) + '</div>'; }).join('')
         : '<div class="pc-empty">AI summary generating soon.</div>';
       document.getElementById('cons-list').innerHTML = cons.length > 0
-        ? cons.map(item => `<div class="pc-item con">${escapeHtml(item)}</div>`).join('')
+        ? cons.map(function(item) { return '<div class="pc-item con">' + escapeHtml(item) + '</div>'; }).join('')
         : '<div class="pc-empty">AI summary generating soon.</div>';
     }
 
-    // Show content, hide loading
+    // Show content
     document.getElementById('loading').style.display = 'none';
     document.getElementById('product-content').style.display = 'block';
   }
 
-  // ─── FETCH COMMENTS FROM MENTIONS TABLE ────────────────────
+  // ─── FETCH COMMENTS ────────────────────────────────────────
   async function fetchComments(productName) {
     try {
-      const { data, error } = await supabase
+      var result = await supabase
         .from('mentions')
         .select('*')
         .eq('product_name', productName)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      if (!data || data.length === 0) return;
+      if (result.error) throw result.error;
+      if (!result.data || result.data.length === 0) return;
 
-      allComments = data;
+      allComments = result.data;
       renderCommentsSection();
-
     } catch (err) {
       console.error('Comments fetch error:', err);
-      // Fail silently — comments are non-critical
     }
   }
 
-  // ─── RENDER COMMENTS SECTION ───────────────────────────────
+  // ─── RENDER COMMENTS ──────────────────────────────────────
   function renderCommentsSection() {
     if (allComments.length === 0) return;
 
     document.getElementById('comments-section').style.display = 'block';
-    document.getElementById('comments-count').textContent =
-      `${allComments.length} mention${allComments.length === 1 ? '' : 's'} found`;
+    document.getElementById('comments-count').textContent = allComments.length + ' mention' + (allComments.length === 1 ? '' : 's') + ' found';
 
-    // Setup filter buttons
     setupCommentFilters();
     renderCommentsList();
   }
 
   function setupCommentFilters() {
-    const filterBtns = document.querySelectorAll('.comment-filter-btn');
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
+    var filterBtns = document.querySelectorAll('.comment-filter-btn');
+    filterBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        filterBtns.forEach(function(b) { b.classList.remove('active'); });
         btn.classList.add('active');
         currentFilter = btn.dataset.filter;
         visibleCount = COMMENTS_PER_PAGE;
@@ -464,136 +439,77 @@
 
   function getFilteredComments() {
     if (currentFilter === 'all') return allComments;
-    return allComments.filter(c => (c.sentiment || '').toLowerCase() === currentFilter);
+    return allComments.filter(function(c) {
+      return (c.sentiment || '').toLowerCase() === currentFilter;
+    });
   }
 
   function renderCommentsList() {
-    const filtered = getFilteredComments();
-    const toShow = filtered.slice(0, visibleCount);
-    const listEl = document.getElementById('comments-list');
+    var filtered = getFilteredComments();
+    var toShow = filtered.slice(0, visibleCount);
+    var listEl = document.getElementById('comments-list');
 
     if (filtered.length === 0) {
-      listEl.innerHTML = `
-        <div class="comments-empty">
-          No ${currentFilter} comments found for this product yet.
-        </div>`;
+      listEl.innerHTML = '<div class="comments-empty">No ' + currentFilter + ' comments found for this product yet.</div>';
       document.getElementById('comments-load-more').style.display = 'none';
       return;
     }
 
-    listEl.innerHTML = toShow.map((c, i) => {
-      const text = c.comment_text || '';
-      const isLong = text.length > 280;
-      const sentiment = (c.sentiment || 'neutral').toLowerCase();
-      const sentimentLabel = sentiment === 'positive' ? '👍 Positive'
-        : sentiment === 'negative' ? '👎 Negative'
-        : '😐 Neutral';
+    listEl.innerHTML = toShow.map(function(c, i) {
+      var text = c.comment_text || '';
+      var isLong = text.length > 280;
+      var sentiment = (c.sentiment || 'neutral').toLowerCase();
+      var sentimentLabel = sentiment === 'positive' ? 'Positive' : sentiment === 'negative' ? 'Negative' : 'Neutral';
 
-      // "View on Reddit" link — only renders if reddit_url exists in DB
-      const redditLink = c.reddit_url
-        ? `<a href="${escapeHtml(c.reddit_url)}" target="_blank" rel="noopener" class="comment-source-link">View on Reddit ↗</a>`
-        : '';
+      var subredditHtml = c.subreddit ? '<span class="comment-subreddit">r/' + escapeHtml(c.subreddit) + '</span>' : '';
+      var userHtml = (c.username && c.username.indexOf('legacy_') !== 0) ? '<span class="comment-user">u/' + escapeHtml(c.username) + '</span>' : '';
+      var redditLink = c.reddit_url ? '<a href="' + escapeHtml(c.reddit_url) + '" target="_blank" rel="noopener" class="comment-source-link">View on Reddit</a>' : '';
+      var readMore = isLong ? '<span class="comment-read-more" data-index="' + i + '">Read more</span>' : '';
 
-      return `
-        <div class="comment-card">
-          <div class="comment-meta">
-            ${c.subreddit ? `<span class="comment-subreddit">r/${escapeHtml(c.subreddit)}</span>` : ''}
-            <span class="comment-sentiment ${sentiment}">${sentimentLabel}</span>
-            ${c.username && !c.username.startsWith('legacy_') ? `<span class="comment-user">u/${escapeHtml(c.username)}</span>` : ''}
-            <span class="comment-time">${timeAgo(c.created_at)}</span>
-          </div>
-          <div class="comment-text ${isLong ? 'comment-text-clamped' : ''}" id="comment-text-${i}">
-            ${escapeHtml(text)}
-          </div>
-          <div class="comment-footer">
-            ${isLong ? `<span class="comment-read-more" onclick="toggleComment(${i}, this)">Read more</span>` : ''}
-            ${redditLink}
-          </div>
-        </div>
-      `;
+      return '<div class="comment-card">' +
+        '<div class="comment-meta">' + subredditHtml +
+        '<span class="comment-sentiment ' + sentiment + '">' + sentimentLabel + '</span>' +
+        userHtml +
+        '<span class="comment-time">' + timeAgo(c.created_at) + '</span></div>' +
+        '<div class="comment-text ' + (isLong ? 'comment-text-clamped' : '') + '" id="comment-text-' + i + '">' + escapeHtml(text) + '</div>' +
+        '<div class="comment-footer">' + readMore + redditLink + '</div>' +
+        '</div>';
     }).join('');
 
-    // Show/hide load more button
-    const loadMoreBtn = document.getElementById('comments-load-more');
+    // Attach read-more click handlers
+    document.querySelectorAll('.comment-read-more').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = btn.getAttribute('data-index');
+        var el = document.getElementById('comment-text-' + idx);
+        if (el.classList.contains('comment-text-clamped')) {
+          el.classList.remove('comment-text-clamped');
+          btn.textContent = 'Show less';
+        } else {
+          el.classList.add('comment-text-clamped');
+          btn.textContent = 'Read more';
+        }
+      });
+    });
+
+    // Load more button
+    var loadMoreBtn = document.getElementById('comments-load-more');
     if (filtered.length > visibleCount) {
       loadMoreBtn.style.display = 'block';
-      loadMoreBtn.textContent = `Show more comments (${filtered.length - visibleCount} remaining) ↓`;
+      loadMoreBtn.textContent = 'Show more comments (' + (filtered.length - visibleCount) + ' remaining)';
     } else {
       loadMoreBtn.style.display = 'none';
     }
   }
 
-  // Make toggle function globally available
-  window.toggleComment = function(index, btn) {
-    const el = document.getElementById(`comment-text-${index}`);
-    if (el.classList.contains('comment-text-clamped')) {
-      el.classList.remove('comment-text-clamped');
-      btn.textContent = 'Show less';
-    } else {
-      el.classList.add('comment-text-clamped');
-      btn.textContent = 'Read more';
-    }
-  };
-
-  // Load more button handler
-  document.getElementById('comments-load-more').addEventListener('click', () => {
+  document.getElementById('comments-load-more').addEventListener('click', function() {
     visibleCount += COMMENTS_PER_PAGE;
     renderCommentsList();
   });
 
-  // ─── FETCH RECOMMENDATIONS ─────────────────────────────────
+  // ─── RECOMMENDATIONS ──────────────────────────────────────
   async function fetchRecommendations(currentProduct) {
     try {
-      const { data: recs, error } = await supabase
+      var result = await supabase
         .from('products')
         .select('name, slug, image_url, price_inr, category, product_category, brand')
         .eq('product_category', currentProduct.product_category || '')
-        .neq('slug', productSlug)
-        .order('score', { ascending: false })
-        .limit(4);
-
-      if (error || !recs || recs.length === 0) return;
-      renderRecommendations(recs);
-    } catch (err) {
-      console.error('Recs fetch error:', err);
-    }
-  }
-
-  // ─── RENDER RECOMMENDATIONS ────────────────────────────────
-  function renderRecommendations(recs) {
-    const grid = document.getElementById('recs-grid');
-
-    grid.innerHTML = recs.map(rec => {
-      const recUrl = `/${rec.category || categorySlug}/${subcategorySlug}/${rec.slug}`;
-      const hasRealImage = rec.image_url && !rec.image_url.startsWith('data:');
-      const imgHtml = hasRealImage
-        ? `<img src="${rec.image_url}" alt="${escapeHtml(rec.name)}" />`
-        : `<div style="width:80px;height:80px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold;color:white;background:linear-gradient(135deg,#06b96f,#3b82f6);margin:0 auto 10px;">${(rec.name || '?').charAt(0).toUpperCase()}</div>`;
-
-      return `
-        <a href="${recUrl}" class="rec-card">
-          ${imgHtml}
-          <p class="rec-name">${escapeHtml(rec.name)}</p>
-          <p class="rec-price">${rec.price_inr ? '₹' + rec.price_inr : ''}</p>
-        </a>
-      `;
-    }).join('');
-
-    document.getElementById('recs-section').style.display = 'block';
-  }
-
-  // ─── ERROR HANDLER ─────────────────────────────────────────
-  function showError(msg) {
-    document.getElementById('loading').style.display = 'none';
-    const errEl = document.getElementById('error');
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-    renderBreadcrumb('Not Found');
-  }
-
-  // ─── INIT ──────────────────────────────────────────────────
-  fetchProduct();
-</script>
-
-</body>
-</html>
