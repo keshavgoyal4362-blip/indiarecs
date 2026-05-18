@@ -1,23 +1,19 @@
 name: Generate Pros Cons
 
 on:
-  # Run automatically after scraper completes
   workflow_run:
-    workflows: ["Run Scraper"]  # Must match your scraper workflow's name exactly
+    workflows: ["Run Scraper"]
     types:
       - completed
 
-  # Daily backup run (in case scraper didn't trigger, or you added products manually)
   schedule:
-    - cron: '30 3 * * *'  # 3:30 AM UTC daily (9:00 AM IST)
+    - cron: '30 3 * * *'
 
-  # Manual trigger still available
   workflow_dispatch:
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    # Only run after scraper if it succeeded (skip if scraper failed)
     if: |
       github.event_name != 'workflow_run' || 
       github.event.workflow_run.conclusion == 'success'
