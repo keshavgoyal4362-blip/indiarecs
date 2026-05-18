@@ -1,25 +1,7 @@
 """
-IndiaRecs — Generate Pros/Cons Summaries (v3 — Fully Automated)
-================================================================
-
-This script is category-agnostic. It processes ALL products in the DB
-that have enough mentions, regardless of category or product_category.
-
-Add new products, categories, or even entirely new verticals (haircare,
-makeup, etc.) — this script picks them up automatically.
-
-Logic:
-1. Fetch ALL products from Supabase (no category filter)
-2. Fetch ALL mentions, group by product
-3. For each product:
-   - Skip if < MIN_MENTIONS
-   - Skip if already has pros/cons AND mentions haven't grown significantly
-   - Otherwise → send mentions to Gemini → save pros/cons
-
-Trigger:
-- Automatically after scraper via workflow chaining
-- Daily schedule as backup
-- Manual via workflow_dispatch
+IndiaRecs — Generate Pros/Cons Summaries
+Automatically processes ALL products in the database.
+Add new products or categories and this script picks them up.
 """
 
 import os
@@ -29,50 +11,21 @@ import json
 from supabase import create_client
 from google import genai
 
-# ═══════════════════════════════════════
-# CONFIGURATION
-# ═══════════════════════════════════════
-
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
-# Minimum mentions needed before generating pros/cons
 MIN_MENTIONS = 2
-
-# Only regenerate existing summaries if mentions grew by this factor
-# e.g., 1.5 = 50% more mentions since last generation
 REGROWTH_FACTOR = 1.5
-
-# Max mentions to include in Gemini prompt (keeps token count reasonable)
 MAX_MENTIONS_FOR_PROMPT = 40
-
-# Delay between Gemini calls (seconds) — respects free tier rate limit
 GEMINI_DELAY = 5
-
 GEMINI_MODEL = "gemini-2.5-flash-lite"
-
-# ═══════════════════════════════════════
-# INIT CLIENTS
-# ═══════════════════════════════════════
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 
-# ═══════════════════════════════════════
-# PROS/CONS GENERATION
-# ═══════════════════════════════════════
-
 def generate_pros_cons(product_name, product_category, mentions):
-    """
-    Send aggregated mentions to Gemini, get back 3 pros + 3 cons.
-    Returns (pros_string, cons_string) with newline separators.
-    
-    product_category is passed to give Gemini context about what
-    type of product this is (helps generate relevant pros/cons).
-    """
-    # Build corpus with sentiment tags
     corpus = "\n".join([
         f"[{m['sentiment']}] {(m['comment_text'] or '')[:300]}"
         for m in mentions
@@ -82,7 +35,6 @@ def generate_pros_cons(product_name, product_category, mentions):
     if not corpus.strip():
         return None, None
 
-    # Dynamic prompt that adapts to any product type
     category_hint = f" (category: {product_category})" if product_category else ""
 
     prompt = f"""You are analyzing Reddit reviews of "{product_name}"{category_hint} from Indian beauty/skincare communities.
@@ -127,79 +79,49 @@ Respond ONLY with valid JSON, no markdown, no explanation:
         return None, None
 
 
-# ═══════════════════════════════════════
-# DECISION LOGIC
-# ═══════════════════════════════════════
-
 def should_generate(product, mention_count):
-    """
-    Decide whether to generate/regenerate pros/cons.
-    
-    Returns (should_run: bool, reason: str)
-    """
     if mention_count < MIN_MENTIONS:
-        return False, "not enough mentions"
+        return False
 
     has_existing = bool((product.get("pros") or "").strip() or (product.get("cons") or "").strip())
 
     if not has_existing:
-        return True, "no existing summary"
+        return True
 
-    # Check if mentions grew significantly since last run
-    # We track this via a dedicated column, or fall back to mention_count
-    last_pros_mention_count = product.get("pros_generated_at_mentions") or product.get("mention_count") or 0
+    last_known = product.get("pros_generated_at_mentions") or product.get("mention_count") or 0
+    if last_known > 0 and mention_count >= last_known * REGROWTH_FACTOR:
+        return True
 
-    if last_pros_mention_count > 0 and mention_count >= last_pros_mention_count * REGROWTH_FACTOR:
-        return True, f"mentions grew ({last_pros_mention_count} → {mention_count})"
+    return False
 
-    return False, "summary exists, no significant growth"
-
-
-# ═══════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════
 
 def main():
     print("=" * 60)
-    print("IndiaRecs — Generate Pros/Cons (v3 — Fully Automated)")
+    print("IndiaRecs — Generate Pros/Cons")
     print("=" * 60)
 
-    # ─── Fetch ALL products (no category filter) ───
     print("\n[1/3] Fetching all products...")
     products = supabase.table("products").select("*").execute().data
-    print(f"  Found {len(products)} total products")
+    print(f"  Found {len(products)} products")
 
-    # Show breakdown by category for visibility
-    categories = {}
-    for p in products:
-        cat = p.get("product_category") or "uncategorized"
-        categories[cat] = categories.get(cat, 0) + 1
-    for cat, count in sorted(categories.items()):
-        print(f"    • {cat}: {count}")
-
-    # ─── Fetch ALL mentions (single query, much faster) ───
     print("\n[2/3] Fetching all mentions...")
     all_mentions = supabase.table("mentions").select(
         "product_name, comment_text, sentiment"
     ).execute().data
-    print(f"  Found {len(all_mentions)} total mentions")
+    print(f"  Found {len(all_mentions)} mentions")
 
-    # Group mentions by product name for O(1) lookup
     mentions_by_product = {}
     for m in all_mentions:
         pn = m.get("product_name")
         if pn:
             mentions_by_product.setdefault(pn, []).append(m)
 
-    # ─── Process each product ───
-    print("\n[3/3] Generating pros/cons summaries...")
+    print("\n[3/3] Generating summaries...")
     generated = 0
     skipped = 0
     failed = 0
     quota_hit = False
 
-    # Sort by mention count descending — most-discussed products first
-    # (if we hit quota, at least the popular ones got processed)
     products_sorted = sorted(
         products,
         key=lambda p: len(mentions_by_product.get(p["name"], [])),
@@ -212,17 +134,14 @@ def main():
         mentions = mentions_by_product.get(name, [])
         mention_count = len(mentions)
 
-        should, reason = should_generate(product, mention_count)
-
-        if not should:
+        if not should_generate(product, mention_count):
             skipped += 1
             continue
 
-        print(f"\n  📝 {name} [{product_category}] ({mention_count} mentions) — {reason}")
+        print(f"\n  📝 {name} [{product_category}] ({mention_count} mentions)")
 
         pros, cons = generate_pros_cons(name, product_category, mentions)
 
-        # Handle quota hit gracefully
         if pros == "QUOTA_HIT":
             quota_hit = True
             break
@@ -232,19 +151,12 @@ def main():
             failed += 1
             continue
 
-        # Save to Supabase
         try:
-            update_data = {
+            supabase.table("products").update({
                 "pros": pros,
                 "cons": cons,
-            }
-
-            # If the column exists, track when we generated this
-            # (allows smarter regeneration decisions next run)
-            # Uncomment after running: ALTER TABLE products ADD COLUMN pros_generated_at_mentions INT;
-            # update_data["pros_generated_at_mentions"] = mention_count
-
-            supabase.table("products").update(update_data).eq("id", product["id"]).execute()
+                "pros_generated_at_mentions": mention_count,
+            }).eq("id", product["id"]).execute()
 
             generated += 1
             print(f"    ✅ Saved")
@@ -255,14 +167,12 @@ def main():
             print(f"    ❌ Save failed: {e}")
             failed += 1
 
-    # ─── Summary ───
     print("\n" + "=" * 60)
     print(f"  Generated:  {generated}")
     print(f"  Skipped:    {skipped}")
     print(f"  Failed:     {failed}")
     if quota_hit:
         print(f"  ⚠️  Stopped early due to Gemini quota limit")
-        print(f"      (most-mentioned products were prioritized)")
     print("=" * 60)
 
 
