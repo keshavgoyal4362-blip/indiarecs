@@ -509,3 +509,137 @@
       }
     }
     el.innerHTML = html;
+  }
+
+  function productRow(p, rank, isFeatured, idx) {
+    const pos = p.positive_count || 0;
+    const neg = p.negative_count || 0;
+    const total = p.mention_count || 0;
+    const neu = Math.max(0, total - pos - neg);
+    const denom = pos + neu + neg;
+    const pct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
+    return `<div class="product-row${isFeatured ? ' featured' : ''}" data-idx="${idx}" onclick="selectProduct(${idx})">
+      <div class="product-rank${isFeatured ? ' rank-featured' : ''}">${rank}</div>
+      <div class="product-info">
+        <div class="product-row-name"><div class="product-row-name-text">${window.escapeHtml(p.name || 'Unknown')}</div></div>
+        ${denom > 0 ? `
+          <div class="sentiment-summary">
+            <span class="positive-pill">${pct}% positive</span>
+            <span class="user-count">of ${total} mention${total === 1 ? '' : 's'}</span>
+          </div>
+          <div class="sentiment-bar">
+            <div class="pos" style="width:${(pos/denom)*100}%"></div>
+            <div class="neu" style="width:${(neu/denom)*100}%"></div>
+            <div class="neg" style="width:${(neg/denom)*100}%"></div>
+          </div>
+        ` : `<div class="sentiment-summary"><span class="user-count">${total} mention${total === 1 ? '' : 's'} · awaiting sentiment</span></div>`}
+        <div class="product-row-meta">${p.brand ? window.escapeHtml(p.brand) : ''}${p.brand && p.product_category ? ' · ' : ''}${p.product_category ? window.escapeHtml(p.product_category) : ''}</div>
+      </div>
+      <div class="product-img">${window.buildProductImg(p, 'small')}</div>
+    </div>`;
+  }
+
+  function renderFeatured(product, rank) {
+    const panel = document.getElementById('featuredPanel');
+    if (!product) {
+      panel.innerHTML = `<div class="empty-featured"><h3>No products yet</h3><p>Check back as the scraper finds cleansers.</p></div>`;
+      return;
+    }
+    const pos = product.positive_count || 0;
+    const neg = product.negative_count || 0;
+    const total = product.mention_count || 0;
+    const neu = Math.max(0, total - pos - neg);
+    const denom = pos + neu + neg;
+    const posPct = denom > 0 ? Math.round((pos / denom) * 100) : 0;
+    const neuPct = denom > 0 ? Math.round((neu / denom) * 100) : 0;
+    const negPct = denom > 0 ? Math.round((neg / denom) * 100) : 0;
+    const pros = (product.pros || '').split('\n').filter(x => x.trim());
+    const cons = (product.cons || '').split('\n').filter(x => x.trim());
+    const slug = window.slugify(product.name);
+
+    // Build the Amazon affiliate URL — uses ASIN if available, else search fallback.
+    const amazonUrl = window.buildAmazonUrl(product);
+    const hasAsin = !!(product.amazon_asin && String(product.amazon_asin).trim());
+    const ctaSubtext = hasAsin ? 'View product on Amazon →' : 'Find on Amazon →';
+
+    panel.innerHTML = `
+      <div class="featured-card">
+        <div class="featured-top">
+          <div class="featured-top-info">
+            <div class="featured-rank-tag">Rank <strong>#${rank + 1}</strong></div>
+            <div class="featured-name">${window.escapeHtml(product.name)}</div>
+            <div class="featured-tags">
+              ${product.product_category ? `<span class="featured-tag">${window.escapeHtml(product.product_category)}</span>` : ''}
+              ${product.skin_type ? `<span class="featured-tag neutral">${window.escapeHtml(product.skin_type)}</span>` : '<span class="featured-tag neutral">All Skin Types</span>'}
+            </div>
+            ${product.brand ? `<div class="featured-desc">By <strong style="color:var(--text);">${window.escapeHtml(product.brand)}</strong> · ${total} Reddit mention${total === 1 ? '' : 's'} analyzed</div>` : ''}
+          </div>
+          <div class="featured-img-wrap">${window.buildProductImg(product, 'large')}</div>
+        </div>
+
+        <div class="sentiment-card">
+          <div class="sentiment-card-head">
+            <div class="sentiment-card-title">Sentiment Score</div>
+            <div class="sentiment-card-help">ⓘ How it works</div>
+          </div>
+          ${denom > 0 ? `
+            <div class="sentiment-row">
+              <span class="sentiment-emoji">👍</span>
+              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill positive" style="width:${posPct}%"></div></div>
+              <span class="sentiment-count"><strong>${pos}</strong> (${posPct}%)</span>
+            </div>
+            <div class="sentiment-row">
+              <span class="sentiment-emoji">😐</span>
+              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill neutral" style="width:${neuPct}%"></div></div>
+              <span class="sentiment-count"><strong>${neu}</strong> (${neuPct}%)</span>
+            </div>
+            <div class="sentiment-row">
+              <span class="sentiment-emoji">👎</span>
+              <div class="sentiment-bar-wrap"><div class="sentiment-bar-fill negative" style="width:${negPct}%"></div></div>
+              <span class="sentiment-count"><strong>${neg}</strong> (${negPct}%)</span>
+            </div>
+          ` : '<div style="color:var(--text-muted);font-size:12px;text-align:center;">Sentiment data appearing as we scan more mentions.</div>'}
+        </div>
+
+        <div class="pros-cons-grid">
+          <div class="pc-card">
+            <div class="pc-title pros">Top Pros</div>
+            ${pros.length > 0 ? pros.map(p => `<div class="pc-quote pros">${window.escapeHtml(p)}</div>`).join('') : '<div class="pc-empty">AI summary generating soon.</div>'}
+          </div>
+          <div class="pc-card">
+            <div class="pc-title cons">Top Cons</div>
+            ${cons.length > 0 ? cons.map(c => `<div class="pc-quote cons">${window.escapeHtml(c)}</div>`).join('') : '<div class="pc-empty">AI summary generating soon.</div>'}
+          </div>
+        </div>
+
+        <div class="amazon-cta-wrap">
+          <a href="${amazonUrl}" target="_blank" rel="sponsored nofollow noopener" class="amazon-cta">
+            <div class="amazon-cta-left">
+              <div class="amazon-cta-icon">🛒</div>
+              <div class="amazon-cta-text">
+                <div class="amazon-cta-title">Buy on Amazon</div>
+                <div class="amazon-cta-sub">${ctaSubtext}</div>
+              </div>
+            </div>
+            <div class="amazon-cta-arrow">→</div>
+          </a>
+        </div>
+
+        <div class="cta-primary-wrap">
+          <a href="/skincare/cleansers/${slug}" class="cta-primary">View full analysis →</a>
+        </div>
+
+        <p class="affiliate-disclosure">As an Amazon Associate, IndiaRecs earns from qualifying purchases. This doesn't affect our Reddit-based rankings.</p>
+      </div>`;
+  }
+
+  loadAll().catch(err => {
+    console.error('Load failed:', err);
+    document.getElementById('productList').innerHTML =
+      `<div style="text-align:center;padding:40px;color:var(--text-dim);">Couldn't load data. Check console.</div>`;
+  });
+</script>
+
+</body>
+</html>
+
