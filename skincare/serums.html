@@ -12,8 +12,10 @@
 
 <main>
   <div class="breadcrumbs">
-    <a href="/">Home</a><span class="sep">›</span>
-    <a href="/">Skincare</a><span class="sep">›</span>
+    <a href="/">Home</a>
+    <span class="sep">›</span>
+    <a href="/">Skincare</a>
+    <span class="sep">›</span>
     <span class="current">Serums</span>
   </div>
 
@@ -36,13 +38,17 @@
       <div class="card">
         <div class="card-title">Subreddits Analyzed</div>
         <div class="card-sub">We analyze real discussions from Indian Reddit communities</div>
-        <div class="subreddit-list" id="subredditList"><div class="skeleton-text">Loading...</div></div>
+        <div class="subreddit-list" id="subredditList">
+          <div class="skeleton-text">Loading...</div>
+        </div>
       </div>
     </aside>
 
     <div class="compare-middle">
       <div class="middle-header">Ranked by Sentiment</div>
-      <div id="productList"><div class="skeleton-text" style="text-align:center;padding:40px;">Loading products...</div></div>
+      <div id="productList">
+        <div class="skeleton-text" style="text-align:center;padding:40px;">Loading products...</div>
+      </div>
     </div>
 
     <aside class="compare-right" id="featuredPanel">
@@ -56,17 +62,16 @@
 
 <div id="mobileMenuContainer"></div>
 <script src="/shared/nav.js"></script>
-<script type="module" src="/shared/compare-page.js"></script>
+
+<!-- Load shared logic, then initialize this page's config -->
 <script type="module">
-  // Wait for compare-page.js to load, then initialize.
-  // The 'load' event fires after all module scripts have executed.
-  window.addEventListener('load', () => {
-    window.initComparePage({
-      title: 'Serums',
-      slug: 'serums',
-      emoji: '✨',
-      filter: /serum|essence|ampoule|concentrate/
-    });
+  import '/shared/compare-page.js';
+  // After import resolves, window.initComparePage is available.
+  window.initComparePage({
+    title: 'Serums',
+    slug: 'serums',
+    emoji: '✨',
+    filter: /serum|essence|ampoule|concentrate/
   });
 </script>
 
