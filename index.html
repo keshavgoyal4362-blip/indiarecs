@@ -42,6 +42,7 @@
   .dropdown-menu::before { content: ""; position: absolute; top: -6px; left: 0; width: 100%; height: 6px; }
   .dropdown-item { display: block; padding: 9px 14px; border-radius: 7px; font-size: 13px; color: var(--text-dim); cursor: pointer; }
   .dropdown-item:hover { background: var(--surface-2); color: var(--text); }
+  .dropdown-item.active { color: var(--accent); font-weight: bold; }
   .dropdown-item.coming { color: var(--text-muted); cursor: default; font-size: 12px; }
   .dropdown-item.coming:hover { background: transparent; color: var(--text-muted); }
   .dropdown-section { padding: 6px 14px 3px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: bold; }
@@ -388,40 +389,59 @@
   }
   function initial(n) { return (n || '?').trim().charAt(0).toUpperCase(); }
 
-  // Updated categories list
+  // Render category cards. A category is "live" when products in the DB
+  // match its filter regex. Live cards link to the matching compare page;
+  // others stay greyed out as "Coming soon" until products are scraped.
+  // The regexes here mirror the ones in /shared/compare-page.js so the
+  // homepage badge and the category page agree on what's live.
   function renderCategories(products) {
-    const liveCats = new Set();
-    products.forEach(p => { if (p.category) liveCats.add(p.category.toLowerCase()); });
-    const counts = {};
-    products.forEach(p => {
-      const c = (p.category || '').toLowerCase();
-      counts[c] = (counts[c] || 0) + 1;
-    });
-
     const cats = [
-      { name: 'Cleanser', icon: '🧴', cls: 'skincare' },
-      { name: 'Moisturizer', icon: '💧', cls: 'skincare' },
-      { name: 'Sunscreen', icon: '☀️', cls: 'suncare' },
-      { name: 'Serum', icon: '✨', cls: 'skincare' },
-      { name: 'Shampoo', icon: '🫧', cls: 'haircare' },
-      { name: 'Conditioner', icon: '💆', cls: 'haircare' },
-      { name: 'Wireless Earbuds', icon: '🎧', cls: 'audio' },
-      { name: 'Headphones', icon: '🎶', cls: 'audio' },
-      { name: 'IEMs', icon: '🎵', cls: 'audio' },
-      { name: 'Fragrances', icon: '🌸', cls: 'fragrance' }
+      { name: 'Cleanser',         icon: '🧴', cls: 'skincare',  href: '/skincare/cleansers',     filter: /cleans|face\s?wash/ },
+      { name: 'Moisturizer',      icon: '💧', cls: 'skincare',  href: '/skincare/moisturizers',  filter: /moistur|cream|lotion|hydrat/ },
+      { name: 'Sunscreen',        icon: '☀️', cls: 'suncare',   href: '/skincare/sunscreens',    filter: /sunscreen|spf|sun\s?block/ },
+      { name: 'Serum',            icon: '✨', cls: 'skincare',  href: '/skincare/serums',        filter: /serum|essence|ampoule|concentrate/ },
+      { name: 'Shampoo',          icon: '🫧', cls: 'haircare',  href: '/haircare/shampoos',      filter: /shampoo/ },
+      { name: 'Conditioner',      icon: '💆', cls: 'haircare',  href: '/haircare/conditioners',  filter: /conditioner/ },
+      { name: 'Wireless Earbuds', icon: '🎧', cls: 'audio',     href: '/audio/wireless-earbuds', filter: /earbud|tws/ },
+      { name: 'Headphones',       icon: '🎶', cls: 'audio',     href: '/audio/headphones',       filter: /headphone|over[\s-]?ear/ },
+      { name: 'IEMs',             icon: '🎵', cls: 'audio',     href: '/audio/iems',             filter: /iem|in[\s-]?ear/ },
+      { name: 'Fragrances',       icon: '🌸', cls: 'fragrance', href: '/fragrances/under-2000',  filter: /fragrance|perfume|cologne|edp|edt/ }
     ];
 
+    // Count matching products per category in one pass.
+    // We use product_category (specific type) instead of category (top-level group)
+    // so "Cleanser" matches "facial cleanser" not just "skincare".
+    const counts = {};
+    cats.forEach(c => { counts[c.name] = 0; });
+    products.forEach(p => {
+      const pcat = (p.product_category || '').toLowerCase();
+      if (!pcat) return;
+      cats.forEach(c => { if (c.filter.test(pcat)) counts[c.name]++; });
+    });
+
     document.getElementById('catGrid').innerHTML = cats.map(c => {
-      const isLive = liveCats.has(c.name.toLowerCase());
-      const count = counts[c.name.toLowerCase()] || 0;
+      const count = counts[c.name];
+      const isLive = count > 0;
       if (isLive) {
-        return `<a href="#" class="cat-card live"><div class="cat-icon ${c.cls}">${c.icon}</div><div><div class="cat-name">${c.name}</div><div class="cat-meta">${count} product${count === 1 ? '' : 's'} · live</div></div></a>`;
+        return `<a href="${c.href}" class="cat-card live">
+          <div class="cat-icon ${c.cls}">${c.icon}</div>
+          <div>
+            <div class="cat-name">${c.name}</div>
+            <div class="cat-meta">${count} product${count === 1 ? '' : 's'} · live</div>
+          </div>
+        </a>`;
       }
-      return `<div class="cat-card coming"><div class="cat-icon ${c.cls}">${c.icon}</div><div><div class="cat-name">${c.name}</div><div class="cat-meta">Coming soon</div></div></div>`;
+      return `<div class="cat-card coming">
+        <div class="cat-icon ${c.cls}">${c.icon}</div>
+        <div>
+          <div class="cat-name">${c.name}</div>
+          <div class="cat-meta">Coming soon</div>
+        </div>
+      </div>`;
     }).join('');
   }
 
-  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'<','>':'>','"':'&quot;',"'":'&#39;'}[c])); }
+  function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function timeAgo(d) {
     if (!d) return 'recently';
     const ms = Date.now() - new Date(d).getTime();
