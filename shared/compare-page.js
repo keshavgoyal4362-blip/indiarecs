@@ -48,20 +48,22 @@ function buildProductImg(p, size) {
   const grad = gradientForName(p.name || '');
   const brand = (p.brand || '').toLowerCase().trim();
   const fontSize = size === 'large' ? '64px' : '20px';
-  const fallback = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${fontSize};font-weight:bold;color:white;background:${grad};border-radius:10px;z-index:-1;">${letter}</div>`;
+  const fallbackOverlay = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${fontSize};font-weight:bold;color:white;background:${grad};border-radius:10px;z-index:-1;">${letter}</div>`;
   const plainFallback = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${fontSize};font-weight:bold;color:white;background:${grad};border-radius:10px;">${letter}</div>`;
 
   if (p.image_url) {
-    return `<img src="${escapeHtml(p.image_url)}" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}">${fallback}`;
+    return `<img src="${escapeHtml(p.image_url)}" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}">${fallbackOverlay}`;
   }
   const isGlobal = GLOBAL_BRANDS.some(b => brand.includes(b));
   if (isGlobal && brand) {
     const domain = brand.replace(/[^a-z0-9]/g, '') + '.com';
-    return `<img src="https://logo.clearbit.com/${domain}" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}">${fallback}`;
+    return `<img src="https://logo.clearbit.com/${domain}" style="width:100%;height:100%;object-fit:contain;padding:8px;" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}">${fallbackOverlay}`;
   }
   return plainFallback;
 }
 
+// Build best-available Amazon URL with affiliate tag.
+// Uses ASIN for direct PRODUCT PAGE link if available, else falls back to a search URL (still tagged).
 function buildAmazonUrl(product) {
   const asin = (product.amazon_asin || '').trim();
   if (asin) return `${AMAZON_DOMAIN}/dp/${encodeURIComponent(asin)}?tag=${AMAZON_AFFILIATE_TAG}`;
@@ -213,9 +215,11 @@ window.initComparePage = function(config) {
     const pros = (product.pros || '').split('\n').filter(x => x.trim());
     const cons = (product.cons || '').split('\n').filter(x => x.trim());
     const productSlug = slugify(product.name);
+
+    // Amazon affiliate URL — direct product page if ASIN available, else search fallback.
     const amazonUrl = buildAmazonUrl(product);
     const hasAsin = !!(product.amazon_asin && String(product.amazon_asin).trim());
-    const ctaSubtext = hasAsin ? 'View product on Amazon →' : 'Find on Amazon →';
+    const ctaSubtext = hasAsin ? 'View on Amazon →' : 'Find on Amazon →';
 
     panel.innerHTML = `
       <div class="featured-card">
@@ -267,20 +271,15 @@ window.initComparePage = function(config) {
           </div>
         </div>
 
-        <div class="amazon-cta-wrap">
+        <!-- Side-by-side: Amazon CTA (smaller, left) + View Full Analysis (larger, right) -->
+        <div class="cta-row">
           <a href="${amazonUrl}" target="_blank" rel="sponsored nofollow noopener" class="amazon-cta">
-            <div class="amazon-cta-left">
-              <div class="amazon-cta-icon">🛒</div>
-              <div class="amazon-cta-text">
-                <div class="amazon-cta-title">Buy on Amazon</div>
-                <div class="amazon-cta-sub">${ctaSubtext}</div>
-              </div>
+            <div class="amazon-cta-icon">🛒</div>
+            <div class="amazon-cta-text">
+              <div class="amazon-cta-title">Buy on Amazon</div>
+              <div class="amazon-cta-sub">${ctaSubtext}</div>
             </div>
-            <div class="amazon-cta-arrow">→</div>
           </a>
-        </div>
-
-        <div class="cta-primary-wrap">
           <a href="/skincare/${config.slug}/${productSlug}" class="cta-primary">View full analysis →</a>
         </div>
 
