@@ -120,21 +120,50 @@ main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
 .pc-quote.cons::before { background: var(--negative); }
 .pc-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
-.amazon-cta-wrap { margin-bottom: 12px; }
-.amazon-cta { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 20px; background: linear-gradient(135deg, rgba(255,153,0,0.14), rgba(255,107,53,0.08)); border: 1px solid rgba(255,153,0,0.4); border-radius: 12px; transition: all 0.15s; }
+/* ─── NEW: Side-by-side CTA row ──────────────────────────────────────
+   Amazon CTA on the left (smaller, ~38% width)
+   View Full Analysis on the right (larger, fills remaining space)
+   Both buttons same height via align-items: stretch.
+*/
+.cta-row { display: flex; gap: 10px; align-items: stretch; margin-bottom: 14px; }
+
+.amazon-cta {
+  flex: 0 0 38%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(255,153,0,0.14), rgba(255,107,53,0.08));
+  border: 1px solid rgba(255,153,0,0.4);
+  border-radius: 12px;
+  transition: all 0.15s;
+  text-align: center;
+  min-width: 0;
+}
 .amazon-cta:hover { border-color: var(--amazon); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,153,0,0.12); }
-.amazon-cta-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.amazon-cta-icon { font-size: 22px; flex-shrink: 0; }
-.amazon-cta-text { min-width: 0; }
-.amazon-cta-title { font-size: 14px; font-weight: bold; color: var(--text); margin-bottom: 2px; }
-.amazon-cta-sub { font-size: 11px; color: var(--text-dim); }
-.amazon-cta-arrow { font-size: 18px; color: var(--amazon); flex-shrink: 0; }
+.amazon-cta-icon { font-size: 18px; flex-shrink: 0; }
+.amazon-cta-text { min-width: 0; text-align: left; }
+.amazon-cta-title { font-size: 12.5px; font-weight: bold; color: var(--text); line-height: 1.2; margin-bottom: 2px; }
+.amazon-cta-sub { font-size: 10.5px; color: var(--amazon); font-weight: bold; line-height: 1.2; }
+
+.cta-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 18px;
+  background: var(--positive);
+  color: var(--bg);
+  font-weight: bold;
+  font-size: 14px;
+  border-radius: 12px;
+  transition: all 0.15s;
+  text-align: center;
+}
+.cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
 
 .affiliate-disclosure { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; padding: 8px 12px; background: var(--surface-2); border-left: 2px solid var(--amazon); border-radius: 4px; }
-
-.cta-primary-wrap { margin-bottom: 14px; }
-.cta-primary { display: block; width: 100%; padding: 14px 18px; background: var(--positive); color: var(--bg); font-weight: bold; font-size: 14px; border-radius: 12px; transition: all 0.15s; text-align: center; }
-.cta-primary:hover { opacity: 0.9; transform: translateY(-1px); }
 
 .empty-featured { background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; padding: 60px 24px; text-align: center; }
 .empty-featured h3 { font-size: 18px; margin-bottom: 10px; }
@@ -170,4 +199,7 @@ main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
   .product-img { width: 56px; height: 56px; }
   .product-row-name { font-size: 14px; }
   .pros-cons-grid { grid-template-columns: 1fr; }
+  /* Stack CTAs on small screens so neither feels cramped */
+  .cta-row { flex-direction: column; }
+  .amazon-cta { flex: none; padding: 14px; }
 }
