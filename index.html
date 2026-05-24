@@ -109,14 +109,25 @@
   .section-sub { color: var(--text-dim); font-size: 13px; }
   .view-all { font-size: 13px; color: var(--positive); font-weight: bold; }
 
-  /* CATEGORIES — larger & more prominent */
+  /* CATEGORIES — every card is a clickable link now */
   .cat-section .section-title { font-size: 28px; }
   .cat-section .section-sub { font-size: 14px; }
   .cat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-  .cat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 18px; transition: all 0.2s; display: flex; align-items: center; gap: 14px; min-width: 0; }
-  .cat-card.live { cursor: pointer; }
-  .cat-card.live:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15); }
-  .cat-card.coming { opacity: 0.5; }
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 18px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    cursor: pointer;
+  }
+  .cat-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15); }
+  .cat-card.coming { opacity: 0.65; }
+  .cat-card.coming:hover { opacity: 1; }
   .cat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
   .cat-icon.skincare { background: rgba(6, 185, 111, 0.12); }
   .cat-icon.haircare { background: rgba(168, 85, 247, 0.12); }
@@ -125,6 +136,7 @@
   .cat-icon.suncare { background: rgba(245, 158, 11, 0.12); }
   .cat-name { font-size: 15px; font-weight: bold; line-height: 1.2; margin-bottom: 2px; }
   .cat-meta { font-size: 11px; color: var(--text-dim); }
+  .cat-meta.live { color: var(--positive); font-weight: bold; }
 
   /* TRENDING */
   .trending-wrap { position: relative; }
@@ -255,7 +267,6 @@
     </div>
   </section>
 
-  <!-- CATEGORIES moved above Trending -->
   <section class="cat-section">
     <div class="section-head">
       <div>
@@ -266,7 +277,6 @@
     <div class="cat-row" id="catGrid"></div>
   </section>
 
-  <!-- TRENDING now below Categories -->
   <section>
     <div class="section-head">
       <div>
@@ -389,11 +399,10 @@
   }
   function initial(n) { return (n || '?').trim().charAt(0).toUpperCase(); }
 
-  // Render category cards. A category is "live" when products in the DB
-  // match its filter regex. Live cards link to the matching compare page;
-  // others stay greyed out as "Coming soon" until products are scraped.
-  // The regexes here mirror the ones in /shared/compare-page.js so the
-  // homepage badge and the category page agree on what's live.
+  // Render category cards. EVERY card is a clickable link to its category page.
+  // The "live" vs "coming soon" label is just a visual hint about whether
+  // we have products in the DB yet — the link works either way, and the
+  // destination page handles the empty state on its own.
   function renderCategories(products) {
     const cats = [
       { name: 'Cleanser',         icon: '🧴', cls: 'skincare',  href: '/skincare/cleansers',     filter: /cleans|face\s?wash/ },
@@ -408,36 +417,35 @@
       { name: 'Fragrances',       icon: '🌸', cls: 'fragrance', href: '/fragrances/under-2000',  filter: /fragrance|perfume|cologne|edp|edt/ }
     ];
 
-    // Count matching products per category in one pass.
-    // We use product_category (specific type) instead of category (top-level group)
-    // so "Cleanser" matches "facial cleanser" not just "skincare".
+    // Count matches per category. We check BOTH product_category AND category
+    // fields, because different rows in your DB may store the type in different
+    // places (e.g. product_category="Cleanser" vs category="cleanser").
+    // This is more forgiving than checking only one field.
     const counts = {};
     cats.forEach(c => { counts[c.name] = 0; });
     products.forEach(p => {
-      const pcat = (p.product_category || '').toLowerCase();
-      if (!pcat) return;
-      cats.forEach(c => { if (c.filter.test(pcat)) counts[c.name]++; });
+      const haystack = `${p.product_category || ''} ${p.category || ''}`.toLowerCase();
+      if (!haystack.trim()) return;
+      cats.forEach(c => { if (c.filter.test(haystack)) counts[c.name]++; });
     });
 
+    // Every card renders as an <a> tag, so every card is clickable.
+    // The only difference between "live" and "coming" is the meta line.
     document.getElementById('catGrid').innerHTML = cats.map(c => {
       const count = counts[c.name];
       const isLive = count > 0;
-      if (isLive) {
-        return `<a href="${c.href}" class="cat-card live">
-          <div class="cat-icon ${c.cls}">${c.icon}</div>
-          <div>
-            <div class="cat-name">${c.name}</div>
-            <div class="cat-meta">${count} product${count === 1 ? '' : 's'} · live</div>
-          </div>
-        </a>`;
-      }
-      return `<div class="cat-card coming">
+      const cardClass = isLive ? 'cat-card' : 'cat-card coming';
+      const metaText = isLive
+        ? `${count} product${count === 1 ? '' : 's'} · live`
+        : 'Coming soon';
+      const metaClass = isLive ? 'cat-meta live' : 'cat-meta';
+      return `<a href="${c.href}" class="${cardClass}">
         <div class="cat-icon ${c.cls}">${c.icon}</div>
         <div>
           <div class="cat-name">${c.name}</div>
-          <div class="cat-meta">Coming soon</div>
+          <div class="${metaClass}">${metaText}</div>
         </div>
-      </div>`;
+      </a>`;
     }).join('');
   }
 
