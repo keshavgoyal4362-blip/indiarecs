@@ -1,0 +1,22 @@
+name: Run IndiaRecs Fragrance Scraper
+on:
+  schedule:
+    - cron: '0 4 * * 1'  # every Monday at 4am UTC (9:30am IST) — 2hrs after skincare
+  workflow_dispatch:       # allows manual run from GitHub
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run fragrance scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python fragrancescraper.py
