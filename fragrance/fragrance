@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compare Fragrances — IndiaRecs</title>
+  <link rel="stylesheet" href="/shared/compare-page.css">
+</head>
+<body>
+
+<nav id="mainNav"></nav>
+
+<main>
+  <div class="breadcrumbs">
+    <a href="/">Home</a>
+    <span class="sep">›</span>
+    <a href="/">Fragrances</a>
+    <span class="sep">›</span>
+    <span class="current">All Fragrances</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1>Compare <span>Fragrances</span></h1>
+      <div class="page-meta">
+        <div class="page-meta-row">Based on <strong id="metaCount">—</strong> Reddit mention<span id="metaPlural">s</span> from Indian communities</div>
+        <div class="page-meta-row">Last updated <strong id="metaUpdated">—</strong></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn">▶ How it works</button>
+      <button class="header-btn">↗ Share</button>
+    </div>
+  </div>
+
+  <div class="compare-grid">
+    <aside class="compare-left">
+      <div class="card">
+        <div class="card-title">Subreddits Analyzed</div>
+        <div class="card-sub">We analyze real discussions from Indian Reddit communities</div>
+        <div class="subreddit-list" id="subredditList">
+          <div class="skeleton-text">Loading...</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="compare-middle">
+      <div class="middle-header">Ranked by Sentiment</div>
+      <div id="productList">
+        <div class="skeleton-text" style="text-align:center;padding:40px;">Loading fragrances...</div>
+      </div>
+    </div>
+
+    <aside class="compare-right" id="featuredPanel">
+      <div class="empty-featured">
+        <h3>Loading featured fragrance...</h3>
+        <p>Pulling top-ranked fragrance from Reddit data.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div id="mobileMenuContainer"></div>
+<script src="/shared/nav.js"></script>
+<script type="module" src="/shared/search.js"></script>
+
+<script type="module">
+  import '/shared/compare-page.js';
+  window.initComparePage({
+    title: 'Fragrances',
+    slug: 'fragrances',
+    emoji: '🌸',
+    filter: /perfume|fragrance|cologne|\bedp\b|\bedt\b|parfum|eau\s?de/i
+  });
+</script>
+
+</body>
+</html>
