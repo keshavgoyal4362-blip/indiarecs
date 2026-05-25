@@ -103,8 +103,8 @@ async function loadFragrances() {
     </div>`).join('');
 
   // Product list
-  const scored = fragrances.filter(f => f.mention_count > 0);
-  const unscored = fragrances.filter(f => !f.mention_count);
+  const scored = fragrances.filter(f => (f.mention_count || 0) > 0);
+  const unscored = fragrances.filter(f => (f.mention_count || 0) === 0);
 
   if (!scored.length) {
     document.getElementById('productList').innerHTML =
