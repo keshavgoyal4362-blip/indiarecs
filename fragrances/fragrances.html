@@ -65,13 +65,132 @@
 <script type="module" src="/shared/search.js"></script>
 
 <script type="module">
-  import '/shared/compare-page.js';
-  window.initComparePage({
-    title: 'Fragrances',
-    slug: 'fragrances',
-    emoji: '🌸',
-    filter: /perfume|fragrance|cologne|\bedp\b|\bedt\b|parfum|eau\s?de/i
-  });
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const SUPABASE_URL = 'https://hrhhznjfpstwuxdlwyhz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SG22UKcXlKJcDlX0QfEOiQ__0sCg5Lc';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const SUBREDDITS = ['DesiFragranceAddicts', 'desifemfrag'];
+
+async function loadFragrances() {
+  const { data: fragrances, error } = await supabase
+    .from('fragrances')
+    .select('*')
+    .eq('is_active', true)
+    .order('score', { ascending: false });
+
+  if (error || !fragrances) {
+    document.getElementById('productList').innerHTML =
+      '<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load fragrances.</div>';
+    return;
+  }
+
+  // Stats
+  const totalMentions = fragrances.reduce((s, f) => s + (f.mention_count || 0), 0);
+  document.getElementById('metaCount').textContent = totalMentions;
+  document.getElementById('metaPlural').textContent = totalMentions === 1 ? '' : 's';
+  const latest = fragrances.find(f => f.last_scraped_at);
+  document.getElementById('metaUpdated').textContent = latest
+    ? timeAgo(latest.last_scraped_at) : 'recently';
+
+  // Subreddits
+  document.getElementById('subredditList').innerHTML = SUBREDDITS.map(s => `
+    <div class="subreddit-item">
+      <div class="subreddit-icon">r/</div>
+      <div>
+        <div class="subreddit-name">r/${s}</div>
+      </div>
+    </div>`).join('');
+
+  // Product list
+  const scored = fragrances.filter(f => f.mention_count > 0);
+  const unscored = fragrances.filter(f => !f.mention_count);
+
+  if (!scored.length) {
+    document.getElementById('productList').innerHTML =
+      '<div style="text-align:center;padding:40px;color:var(--text-muted)">No mentions yet — scraper runs weekly.</div>';
+  } else {
+    document.getElementById('productList').innerHTML =
+      scored.map((f, i) => productRow(f, i + 1)).join('');
+  }
+
+  // Featured panel — top scored fragrance
+  if (scored.length) renderFeatured(scored[0]);
+}
+
+function productRow(f, rank) {
+  const total = (f.positive_count || 0) + (f.negative_count || 0);
+  const pct = total > 0 ? Math.round((f.positive_count / total) * 100) : 0;
+  const bar = total > 0
+    ? `<div class="sentiment-bar">
+        <div class="pos" style="width:${pct}%"></div>
+        <div class="neg" style="width:${100 - pct}%"></div>
+       </div>` : '';
+
+  return `<div class="product-row" onclick="showFeatured(${f.id})" style="cursor:pointer">
+    <div class="product-rank">${rank}</div>
+    <div class="product-info">
+      <div class="product-name">${esc(f.name)}</div>
+      <div class="product-meta">${esc(f.brand)} · ${esc(f.concentration || '')} · ${esc(f.gender || '')}</div>
+      ${bar}
+    </div>
+    <div class="product-score-wrap">
+      <div class="product-score">${f.score ? f.score.toFixed(1) : '—'}</div>
+      <div class="product-mentions">${f.mention_count || 0} mention${f.mention_count === 1 ? '' : 's'}</div>
+    </div>
+  </div>`;
+}
+
+function renderFeatured(f) {
+  const total = (f.positive_count || 0) + (f.negative_count || 0);
+  const pct = total > 0 ? Math.round((f.positive_count / total) * 100) : 0;
+  document.getElementById('featuredPanel').innerHTML = `
+    <div class="card featured-card">
+      <div class="featured-badge">⭐ Top Rated</div>
+      <div class="featured-img">
+        ${f.image_url
+          ? `<img src="${esc(f.image_url)}" alt="${esc(f.name)}">`
+          : `<div class="featured-img-fallback">${f.name.charAt(0)}</div>`}
+      </div>
+      <div class="featured-name">${esc(f.name)}</div>
+      <div class="featured-brand">${esc(f.brand)}</div>
+      <div class="featured-tags">
+        <span class="tag">${esc(f.concentration || '')}</span>
+        <span class="tag">${esc(f.gender || '')}</span>
+        <span class="tag">${esc(f.price_tier || '')}</span>
+      </div>
+      <div class="featured-stats">
+        <div class="featured-stat"><div class="featured-stat-num">${f.score ? f.score.toFixed(1) : '—'}</div><div class="featured-stat-label">Score</div></div>
+        <div class="featured-stat"><div class="featured-stat-num">${f.mention_count || 0}</div><div class="featured-stat-label">Mentions</div></div>
+        <div class="featured-stat"><div class="featured-stat-num">${pct}%</div><div class="featured-stat-label">Positive</div></div>
+      </div>
+      ${f.affiliate_url ? `<a href="${esc(f.affiliate_url)}" target="_blank" class="buy-btn">View on Amazon ↗</a>` : ''}
+    </div>`;
+}
+
+// Expose for row clicks
+window.showFeatured = async (id) => {
+  const { data } = await supabase.from('fragrances').select('*').eq('id', id).single();
+  if (data) renderFeatured(data);
+};
+
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return 'recently';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days < 1) return 'today';
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+loadFragrances();
 </script>
 
 </body>
