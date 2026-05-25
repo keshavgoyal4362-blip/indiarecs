@@ -15,12 +15,8 @@ const HAIRCARE_LINKS = [
   { name: 'Conditioner', href: '/haircare/conditioners' },
 ];
 
-const FRAGRANCE_LINKS = [
-  { name: 'Under ₹2,000', href: '/fragrances/under-2000' },
-  { name: '₹2,000 – ₹5,000', href: '/fragrances/2000-5000' },
-  { name: '₹5,000 – ₹10,000', href: '/fragrances/5000-10000' },
-  { name: '₹10,000+', href: '/fragrances/10000-plus' },
-];
+// Single fragrance link (no sub-categories or price tiers anymore)
+const FRAGRANCES_HREF = '/fragrances/fragrances';
 
 const AUDIO_LINKS = [
   { name: 'Wireless Earbuds', href: '/audio/wireless-earbuds' },
@@ -49,6 +45,12 @@ function buildDropdownItems(links) {
   }).join('');
 }
 
+// Builds a single standalone dropdown link (used for Fragrances)
+function buildStandaloneDropdownItem(name, href) {
+  var isActive = getCurrentPath() === href;
+  return '<a href="' + href + '" class="dropdown-item dropdown-item-standalone' + (isActive ? ' active' : '') + '">' + name + '</a>';
+}
+
 function buildMobileLinks(links) {
   var currentPath = getCurrentPath();
   return links.map(function(link) {
@@ -61,6 +63,13 @@ function buildMobileLinks(links) {
   }).join('');
 }
 
+// Builds a single standalone mobile link (used for Fragrances)
+function buildStandaloneMobileLink(name, href) {
+  var isActive = getCurrentPath() === href;
+  var style = isActive ? ' style="color:var(--accent);font-weight:bold;"' : '';
+  return '<a href="' + href + '"' + style + '>' + name + '</a>';
+}
+
 function renderNav() {
   var navEl = document.getElementById('mainNav');
   if (!navEl) return;
@@ -71,7 +80,7 @@ function renderNav() {
     + '    <div class="logo-flag"></div>'
     + '    IndiaRecs'
     + '  </a>'
-    // ─── Beauty & Personal Care: Skincare + Hair Care + Fragrances ───
+    // ─── Beauty & Personal Care: Skincare + Hair Care + Fragrances (single link) ───
     + '  <div class="nav-dropdown">'
     + '    <button class="nav-dropdown-btn">Beauty &amp; Personal Care <span class="arrow">▼</span></button>'
     + '    <div class="dropdown-menu">'
@@ -81,8 +90,8 @@ function renderNav() {
     + '      <div class="dropdown-section">Hair Care</div>'
     +        buildDropdownItems(HAIRCARE_LINKS)
     + '      <div class="dropdown-divider"></div>'
-    + '      <div class="dropdown-section">Fragrances</div>'
-    +        buildDropdownItems(FRAGRANCE_LINKS)
+    // Fragrances is now a single clickable item, no section header or sub-items
+    +        buildStandaloneDropdownItem('Fragrances', FRAGRANCES_HREF)
     + '    </div>'
     + '  </div>'
     // ─── Tech & Lifestyle: Audio ───
@@ -112,8 +121,9 @@ function renderNav() {
       +    buildMobileLinks(SKINCARE_LINKS)
       + '  <h4>Hair Care</h4>'
       +    buildMobileLinks(HAIRCARE_LINKS)
+      // Fragrances: single link, no sub-section
       + '  <h4>Fragrances</h4>'
-      +    buildMobileLinks(FRAGRANCE_LINKS)
+      +    buildStandaloneMobileLink('Browse Fragrances', FRAGRANCES_HREF)
       + '  <h4>Audio</h4>'
       +    buildMobileLinks(AUDIO_LINKS)
       + '  <h4>Account</h4>'
