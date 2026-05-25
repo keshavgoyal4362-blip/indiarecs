@@ -157,6 +157,20 @@ nav {
   color: var(--nav-text-muted);
 }
 
+/* STANDALONE DROPDOWN ITEM (e.g., Fragrances)
+   A top-level link inside the dropdown, styled bolder
+   so it feels like its own category, not a sub-item. */
+.dropdown-item-standalone {
+  font-weight: bold;
+  color: var(--nav-text);
+  padding: 11px 14px;
+}
+
+.dropdown-item-standalone:hover {
+  background: var(--nav-surface-2);
+  color: var(--nav-accent);
+}
+
 .dropdown-section {
   padding: 6px 14px 3px;
   font-size: 10px;
