@@ -67,11 +67,27 @@
 
 <script type="module">
   import '/shared/compare-page.js';
+
   window.initComparePage({
     title: 'Cleansers',
     slug: 'cleansers',
     emoji: '🧼',
-    filter: /cleans|face\s?wash/
+
+    table: 'cleansers',
+
+    nameField: 'name',
+    brandField: 'brand',
+    scoreField: 'score',
+    mentionCountField: 'mention_count',
+    positiveCountField: 'positive_count',
+    negativeCountField: 'negative_count',
+    imageField: 'image_url',
+    affiliateField: 'affiliate_url',
+    updatedField: 'updated_at',
+
+    typeField: 'cleanser_type',
+    skinTypeField: 'skin_type',
+    priceTierField: 'price_tier'
   });
 </script>
 
