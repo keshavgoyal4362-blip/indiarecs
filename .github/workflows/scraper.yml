@@ -1,28 +1,22 @@
-name: Run IndiaRecs Scraper
-
+name: Run IndiaRecs Skincare Scraper
 on:
   schedule:
     - cron: '0 2 * * 1'  # every Monday at 2am UTC (7:30am IST Monday)
-  workflow_dispatch:       # allows manual run from GitHub
-
+  workflow_dispatch:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
       - name: Install dependencies
         run: pip install -r requirements.txt
-
       - name: Run scraper
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python scraper.py
+        run: python skincare_scraper.py
