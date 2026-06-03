@@ -321,6 +321,10 @@ window.initComparePage = function(config) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   let productsGlobal = [];
 
+  // ─── PAGINATION STATE ───────────────────────────────────────────────
+  const PAGE_SIZE = 15;
+  let visibleProducts = PAGE_SIZE;
+
   function matchesCategory(p) {
     if (config.table !== 'products') return true;
 
@@ -407,14 +411,17 @@ window.initComparePage = function(config) {
     }
   }
 
+  // ─── FIXED: select by data-idx value, not DOM position ─────────────
   window.selectProduct = function(index) {
-    document.querySelectorAll('.product-row[data-idx]').forEach((row, i) => {
-      row.classList.toggle('featured', i === index);
+    document.querySelectorAll('.product-row[data-idx]').forEach(row => {
+      const rowIdx = parseInt(row.dataset.idx, 10);
+      const isFeatured = rowIdx === index;
+
+      row.classList.toggle('featured', isFeatured);
 
       const rank = row.querySelector('.product-rank');
-
       if (rank) {
-        rank.classList.toggle('rank-featured', i === index);
+        rank.classList.toggle('rank-featured', isFeatured);
       }
     });
 
@@ -494,6 +501,7 @@ window.initComparePage = function(config) {
     }
   }
 
+  // ─── UPDATED: renders only visibleProducts slice + Show More button ─
   function renderProductList(products) {
     const el = document.getElementById('productList');
 
@@ -512,9 +520,11 @@ window.initComparePage = function(config) {
       return;
     }
 
-    let html = products.map((p, i) => productRow(p, i + 1, i === 0, i)).join('');
+    const visible = products.slice(0, visibleProducts);
+    let html = visible.map((p, i) => productRow(p, i + 1, i === 0, i)).join('');
 
-    if (products.length < 5) {
+    // Skeleton padding only when total products < 5 AND we're showing all of them
+    if (products.length < 5 && visibleProducts >= products.length) {
       for (let i = 0; i < 5 - products.length; i++) {
         html += `
           <div class="product-row skeleton">
@@ -531,8 +541,24 @@ window.initComparePage = function(config) {
       }
     }
 
+    // Show More button
+    if (visibleProducts < products.length) {
+      const remaining = products.length - visibleProducts;
+      html += `
+        <button class="show-more-btn" onclick="showMoreProducts()">
+          Show More (${remaining} remaining)
+        </button>
+      `;
+    }
+
     el.innerHTML = html;
   }
+
+  // ─── Show More handler ───────────────────────────────────────────────
+  window.showMoreProducts = function() {
+    visibleProducts += PAGE_SIZE;
+    renderProductList(productsGlobal);
+  };
 
   function productRow(p, rank, isFeatured, idx) {
     const pos = getPositiveCount(p, config);
