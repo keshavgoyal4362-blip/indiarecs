@@ -136,7 +136,15 @@ main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
 .product-row.skeleton:hover { background: var(--surface-2); }
 .skeleton-text { color: var(--text-muted); font-size: 13px; }
 
-.compare-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 80px; }
+.compare-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 90px;
+  align-self: start;
+  height: fit-content;
+}
 .featured-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
 
 .featured-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
@@ -225,18 +233,38 @@ main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
 .empty-featured h3 { font-size: 18px; margin-bottom: 10px; }
 .empty-featured p { color: var(--text-dim); font-size: 13px; }
 
+/* ─── Show More button ──────────────────────────────────────────────── */
+.show-more-btn {
+  width: 100%;
+  height: 56px;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.show-more-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 /* ─── Responsive ────────────────────────────────────────────────────── */
 @media (max-width: 1380px) {
   .compare-grid { grid-template-columns: 240px 420px 1fr; gap: 16px; }
   .featured-name { font-size: 26px; }
   .featured-img-wrap { width: 150px; }
 }
-@media (max-width: 1180px) {
+@media (max-width: 1024px) {
   .compare-grid { grid-template-columns: 1fr 1fr; }
   .compare-left { grid-column: 1 / -1; flex-direction: row; }
   .compare-left .card { flex: 1; }
-  .compare-right { position: static; }
-  .page-header h1 { font-size: 32px; }
+  .compare-right { position: static; top: auto; align-self: auto; height: auto; }
 }
 @media (max-width: 768px) {
   main { padding: 16px 14px 32px; }
@@ -260,7 +288,6 @@ main { max-width: 1500px; margin: 0 auto; padding: 24px 32px 48px; }
   .product-img { width: 56px; height: 56px; }
   .product-row-name { font-size: 14px; }
   .pros-cons-grid { grid-template-columns: 1fr; }
-  /* Stack CTAs on small screens */
   .cta-row { flex-direction: column; }
   .amazon-cta { flex: none; padding: 14px; }
 }
